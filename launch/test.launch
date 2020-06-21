@@ -1,0 +1,7 @@
+<launch>
+
+	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/kejia_localization.bag"/>	
+
+	<node pkg="ugv_localization" type="plot_traj.py" name="plot_traj" args="/odometry" output="screen"/>
+
+</launch>
