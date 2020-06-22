@@ -2,6 +2,12 @@
 
 	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/kejia_localization.bag"/>	
 
-	<node pkg="ugv_localization" type="plot_traj.py" name="plot_traj" args="/odometry" output="screen"/>
+ 	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_node" clear_params="true">
+		<rosparam command="load" file="$(find ugv_localization)/config/robot_localization.yaml"/>
+	</node>
+
+	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj" args="/odometry/filtered" output="screen"/-->
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/robot_localization.rviz"/>
 
 </launch>
