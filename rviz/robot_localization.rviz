@@ -72,7 +72,7 @@ Visualization Manager:
           Value: true
         Value: true
       Enabled: true
-      Keep: 10000
+      Keep: 20000
       Name: Odometry
       Position Tolerance: 0.100000001
       Shape:
@@ -104,9 +104,9 @@ Visualization Manager:
           Color: 204; 51; 204
           Scale: 1
           Value: true
-        Value: true
+        Value: false
       Enabled: true
-      Keep: 10000
+      Keep: 20000
       Name: Odometry
       Position Tolerance: 0.100000001
       Shape:
@@ -147,7 +147,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 344.493439
+      Distance: 173.1185
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -162,10 +162,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: -0.649601996
+      Pitch: -1.56979632
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.95539808
+      Yaw: 1.71539843
     Saved: ~
 Window Geometry:
   Displays:

@@ -6,8 +6,10 @@
 		<rosparam command="load" file="$(find ugv_localization)/config/robot_localization.yaml"/>
 	</node>
 
-	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj" args="/odometry/filtered" output="screen"/-->
+	<node pkg="ugv_localization" type="plot_traj.py" name="plot_traj" args="/imu_3dm/imu" output="screen"/>
 
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/robot_localization.rviz"/>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="base_link2imu" args="0.45 0 0 0 0 3.1416 /base_link /imu_3dm"/>
 
 </launch>
