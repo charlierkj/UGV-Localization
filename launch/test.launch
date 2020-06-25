@@ -2,14 +2,35 @@
 
 	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/kejia_localization.bag"/>	
 
- 	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_node" clear_params="true">
+ 	<!--node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_node" clear_params="true">
 		<rosparam command="load" file="$(find ugv_localization)/config/robot_localization.yaml"/>
-	</node>
+	</node-->
 
-	<node pkg="ugv_localization" type="plot_traj.py" name="plot_traj" args="/imu_3dm/imu" output="screen"/>
+	<node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_odom" args="/rtk_ublox/fix gps" output="screen"/>
 
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/robot_localization.rviz"/>
+    <!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_odom_filtered" args="odom /odometry/filtered" output="screen"/-->
 
-    <node pkg="tf2_ros" type="static_transform_publisher" name="base_link2imu" args="0.45 0 0 0 0 3.1416 /base_link /imu_3dm"/>
+    <!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_imu" args="imu /imu_3dm/imu" output="screen"/-->
+
+    <!--node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true">
+    	<param name="magnetic_declination_radians" value="0"/>
+    	<param name="yaw_offset" value="0"/>
+    	<param name="zero_altitude" value="true"/>
+
+    	<param name="use_odometry_yaw" value="false"/>
+    	<param name="wait_for_datum" value="false"/>
+   
+    	<param name="publish_filtered_gps" value="true"/>
+    	<param name="broadcast_utm_transform" value="false"/>
+    
+    	<remap from="/imu/data" to="/imu_3dm/imu" />
+    	<remap from="/gps/fix" to="/rtk_ublox/fix" />
+    	<remap from="/odometry/filtered" to="/odometry/filtered" />
+ 	</node-->
+
+    <!--node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/robot_localization.rviz"/-->
+
+    <!-- publish transformation from "/base_link" to "/imu_3dm" -->
+    <!--node pkg="tf2_ros" type="static_transform_publisher" name="base_link2imu" args="0.45 0 0 0 0 3.1416 /base_link /imu_3dm"/-->
 
 </launch>
