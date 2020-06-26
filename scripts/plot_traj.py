@@ -54,7 +54,7 @@ class TrajPlotter(object):
 			rot_q = msg_odom.pose.pose.orientation
 			rot_euler = transformations.euler_from_quaternion((rot_q.x, rot_q.y, rot_q.z, rot_q.w))
 			self.yaw_init = rot_euler[2]
-			self.rot_mat = np.array([[np.cos(self.yaw_init), -np.sin(self.yaw_init)], [np.sin(self.yaw_init), np.cos(self.yaw_init)]])
+			self.rot_mat = np.array([[np.cos(self.yaw_init), -np.sin(self.yaw_init)], [np.sin(self.yaw_init), np.cos(self.yaw_init)]]).T
 		else:
 			traj_last = self.traj_waypts[-2:, :]
 			if self.relative:
