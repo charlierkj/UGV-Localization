@@ -6,9 +6,11 @@
 		<rosparam command="load" file="$(find ugv_localization)/config/robot_localization.yaml"/>
 	</node-->
 
+	<node pkg="ugv_localization" type="wheel_imu_odom.py" name="wheel_imu_odom" args="/wheel_odometry /imu_3dm/imu /odometry/wheel_imu" output="screen"/>
+
 	<node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_gps" args="/rtk_ublox/fix gps" output="screen"/>
 
-    <node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_odom" args="/odometry odom" output="screen"/>
+    <node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_odom" args="/odometry/wheel_imu odom" output="screen"/>
 
     <node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_imu" args="/imu_3dm/imu imu" output="screen"/>
 

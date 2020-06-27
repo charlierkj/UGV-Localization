@@ -9,6 +9,7 @@ project(ugv_localization)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   nav_msgs
+  rampage_msgs
   robot_localization
   roscpp
   rospy
