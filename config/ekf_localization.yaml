@@ -13,15 +13,15 @@ publish_tf: false
 
 # specify the frames
 world_frame: /world
-map_frame: /gps
+map_frame: /map
 odom_frame: /world
 base_link_frame: /base_link
 
 # configure odometry inputs
-odom0: odometry
+odom0: odometry/wheel_imu
 odom0_config: [true, true, false,
                false, false, true,
-               true, true, false,
+               true, false, false,
                false, false, true,
                false, false, false]
 odom0_differential: true
@@ -32,7 +32,7 @@ imu0_config: [false, false, false,
               false, false, false,
               false, false, false,
               false, false, true,
-              true, false, false]
+              false, false, false]
 imu0_differential: false
 
 # configure initial covariance
