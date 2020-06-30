@@ -13,13 +13,15 @@ from tf import transformations
 
 
 class WheelImuOdom(object):
-	# use wheel odometry for linear velocity and imu for angular velocity.
+	# use wheel odometry for linear velocity and imu for angular velocity or yaw.
 
-	def __init__(self, topic_wheel, topic_imu, topic_odom):
+	def __init__(self, topic_wheel, topic_imu, topic_odom, use_imu_yaw=True):
 		# configure subscriber and publisher
 		self.sub_wheel = rospy.Subscriber(topic_wheel, WheelOdometry, self.wheel_callback)
 		self.sub_imu = rospy.Subscriber(topic_imu, Imu, self.imu_callback)
 		self.pub_odom = rospy.Publisher(topic_odom, Odometry, queue_size=10)
+
+		self.use_imu_yaw = use_imu_yaw # True: use imu yaw; False: use imu angular velocity
 
 		# define motion params (linear velocity, angular velocity, x, y, orientation)
 		self.vel_lin = 0
@@ -52,7 +54,8 @@ class WheelImuOdom(object):
 		# update
 		self.vel_lin = self.rpm_to_vel(msg_wheel.delta_ticks)
 		dist = self.vel_lin * dt_v
-		self.ori += self.vel_ang * dt
+		if not self.use_imu_yaw:
+			self.ori += self.vel_ang * dt
 		self.x += dist * np.cos(self.ori)
 		self.y += dist * np.sin(self.ori)
 		self.time = time_curr
@@ -60,8 +63,8 @@ class WheelImuOdom(object):
 		# publish odom
 		msg_odom = Odometry()
 		self.seq_pub += 1
-		msg_odom.child_frame_id = "/base_link"
-		msg_odom.header.frame_id = "/world"
+		msg_odom.child_frame_id = "base_link"
+		msg_odom.header.frame_id = "world"
 		msg_odom.header.seq = self.seq_pub
 		msg_odom.header.stamp = msg_wheel.t_epoch
 		msg_odom.twist.twist.angular.x = 0
@@ -89,9 +92,16 @@ class WheelImuOdom(object):
 		dt = time_curr - self.time
 
 		# update
-		self.vel_ang = - msg_imu.angular_velocity.z
-		if self.time != -1:
-			self.ori += self.vel_ang * dt
+		self.vel_ang = msg_imu.angular_velocity.z
+		
+		if self.use_imu_yaw:
+			q = msg_imu.orientation
+			euler = transformations.euler_from_quaternion(quaternion=(q.x, q.y, q.z, q.w))
+			self.ori = euler[2]
+		else:
+			if self.time != -1:
+				self.ori += self.vel_ang * dt
+		
 		self.time = time_curr
 
 
@@ -108,7 +118,7 @@ if __name__ == "__main__":
 	topic_wheel, topic_imu, topic_odom = sys.argv[1], sys.argv[2], sys.argv[3]
 
 	rospy.init_node('wheel_imu_odom', anonymous=True)
-	wheel_imu_odom = WheelImuOdom(topic_wheel, topic_imu, topic_odom)
+	wheel_imu_odom = WheelImuOdom(topic_wheel, topic_imu, topic_odom, True)
 	rospy.spin()
 
 	

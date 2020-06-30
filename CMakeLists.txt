@@ -8,6 +8,8 @@ project(ugv_localization)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  imu_3dm_gx4
+  message_filters
   nav_msgs
   rampage_msgs
   robot_localization

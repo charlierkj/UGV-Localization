@@ -1,12 +1,14 @@
 # configuration for navsat_tranform_node in robot_localization package
 
+frequency: 5
+
 magnetic_declination_radians: 0
 
 yaw_offset: 0
 
 zero_altitude: true
 
-use_odometry_yaw: true
+use_odometry_yaw: false
 
 wait_for_datum: false
 
