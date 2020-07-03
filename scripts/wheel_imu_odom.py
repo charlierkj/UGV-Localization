@@ -15,19 +15,28 @@ from tf import transformations
 class WheelImuOdom(object):
 	# use wheel odometry for linear velocity and imu for angular velocity or yaw.
 
-	def __init__(self, topic_wheel, topic_imu, topic_odom, use_imu_yaw=True):
+	def __init__(self, topic_wheel, topic_imu, topic_odom, mode='local', offset=None):
+		"""
+		mode: 'global': use imu absolute yaw, get global odometry; 'local': simply use imu continuous measurment (vel, accel), get local odometry.
+		offset: x-y position offset. has to specify if mode is 'global'
+		"""
 		# configure subscriber and publisher
 		self.sub_wheel = rospy.Subscriber(topic_wheel, WheelOdometry, self.wheel_callback)
 		self.sub_imu = rospy.Subscriber(topic_imu, Imu, self.imu_callback)
 		self.pub_odom = rospy.Publisher(topic_odom, Odometry, queue_size=10)
 
-		self.use_imu_yaw = use_imu_yaw # True: use imu yaw; False: use imu angular velocity
+		self.mode = mode
+		self.offset = offset
+		if self.mode == 'global' and self.offset is None:
+			raise ValueError("Have to specify offset for 'global' mode!") 
 
 		# define motion params (linear velocity, angular velocity, x, y, orientation)
 		self.vel_lin = 0
 		self.vel_ang = 0
-		self.x = 0
-		self.y = 0
+		if self.mode == 'global':
+			self.x, self.y = self.offset[0], self.offset[1]
+		elif self.mode == 'local':
+			self.x, self.y = 0, 0
 		self.ori = 0 # 2D
 		self.time = -1
 		self.seq_pub = 0
@@ -54,7 +63,7 @@ class WheelImuOdom(object):
 		# update
 		self.vel_lin = self.rpm_to_vel(msg_wheel.delta_ticks)
 		dist = self.vel_lin * dt_v
-		if not self.use_imu_yaw:
+		if self.mode == 'local':
 			self.ori += self.vel_ang * dt
 		self.x += dist * np.cos(self.ori)
 		self.y += dist * np.sin(self.ori)
@@ -64,7 +73,7 @@ class WheelImuOdom(object):
 		msg_odom = Odometry()
 		self.seq_pub += 1
 		msg_odom.child_frame_id = "base_link"
-		msg_odom.header.frame_id = "world"
+		msg_odom.header.frame_id = "odom" if self.mode == 'local' else "world"
 		msg_odom.header.seq = self.seq_pub
 		msg_odom.header.stamp = msg_wheel.t_epoch
 		msg_odom.twist.twist.angular.x = 0
@@ -94,11 +103,11 @@ class WheelImuOdom(object):
 		# update
 		self.vel_ang = msg_imu.angular_velocity.z
 		
-		if self.use_imu_yaw:
+		if self.mode == 'global':
 			q = msg_imu.orientation
 			euler = transformations.euler_from_quaternion(quaternion=(q.x, q.y, q.z, q.w))
 			self.ori = euler[2]
-		else:
+		elif self.mode == 'local':
 			if self.time != -1:
 				self.ori += self.vel_ang * dt
 		
@@ -118,7 +127,7 @@ if __name__ == "__main__":
 	topic_wheel, topic_imu, topic_odom = sys.argv[1], sys.argv[2], sys.argv[3]
 
 	rospy.init_node('wheel_imu_odom', anonymous=True)
-	wheel_imu_odom = WheelImuOdom(topic_wheel, topic_imu, topic_odom, True)
+	wheel_imu_odom = WheelImuOdom(topic_wheel, topic_imu, topic_odom, mode='local')
 	rospy.spin()
 
 	

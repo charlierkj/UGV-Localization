@@ -69,8 +69,6 @@ class TrajPlotter(object):
 		self.traj_waypts = np.vstack((self.traj_waypts, waypt_2d))
 		if self.traj_waypts.shape[0] > 1:
 			traj_last = self.traj_waypts[-2:, :]
-			if self.relative:
-				traj_last = traj_last - self.traj_waypts[0, :]
 			plt.plot(traj_last[:, 0], traj_last[:, 1], color='blue')
 
 
