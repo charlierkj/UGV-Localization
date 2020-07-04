@@ -12,25 +12,29 @@
 	<node pkg="ugv_localization" type="wheel_imu_odom.py" name="wheel_imu_odom" args="/wheel_odometry /imu/combined /odometry/wheel_imu" output="screen"/>
 
 
-	<!-- fusion by robot_localization package -->
- 	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_imu" clear_params="true" output="screen">
-		<rosparam command="load" file="$(find ugv_localization)/config/ekf_odom_imu.yaml"/>
+	<!-- publish utm to world frame transformation -->
+	<node pkg="ugv_localization" type="datum_tf_node" name="datum_tf_node" output="screen">
+		<param name="latitude" type="double" value="39.326465"/>
+		<param name="longitude" type="double" value="-76.621554"/>
+		<param name="yaw" type="double" value="0.0"/>
+		<param name="frame_id" type="string" value="utm"/>
+		<param name="child_frame_id" type="string" value="map"/>
 	</node>
 
-    <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true" output="screen">
-    	<rosparam command="load" file="$(find ugv_localization)/config/navsat_transform.yaml"/>
+
+	<!-- fusion by robot_localization package -->
+ 	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_imu" clear_params="true">
+		<rosparam command="load" file="$(find ugv_localization)/config/local/ekf_odom_imu.yaml"/>
+	</node>
+
+    <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true">
+    	<rosparam command="load" file="$(find ugv_localization)/config/local/navsat_transform.yaml"/>
     
     	<remap from="imu/data" to="imu/combined"/>
     	<remap from="gps/fix" to="rtk_ublox/fix"/>
     	<remap from="odometry/filtered" to="odometry/filtered"/>
  	</node>
 
-	<!--
-	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_imu_gps" clear_params="true" output="screen">
-		<rosparam command="load" file="$(find ugv_localization)/config/ekf_odom_imu_gps.yaml"/>
-		<remap from="odometry/filtered" to="odometry/result"/>
-	</node>
-	-->
 
     <!-- publish required tf (transformation) -->
 	<node pkg="tf2_ros" type="static_transform_publisher" name="base_link2gps" args="0 0 0 0 0 0 base_link gps"/>
@@ -45,6 +49,6 @@
 	
 
 	<!-- visualize in rviz -->
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/robot_localization.rviz"/>
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/local.rviz"/>
 
 </launch>
