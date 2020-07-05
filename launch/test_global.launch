@@ -13,24 +13,23 @@
 
 
 	<!-- fusion by robot_localization package -->
- 	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_imu" clear_params="true" output="screen">
-		<rosparam command="load" file="$(find ugv_localization)/config/local/ekf_odom_imu.yaml"/>
+ 	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_imu" clear_params="true">
+		<rosparam command="load" file="$(find ugv_localization)/config/global/ekf_odom_imu.yaml"/>
+		<remap from="odometry/filtered" to="odometry/intermediate"/>
 	</node>
 
-    <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true" output="screen">
-    	<rosparam command="load" file="$(find ugv_localization)/config/local/navsat_transform.yaml"/>
+    <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true">
+    	<rosparam command="load" file="$(find ugv_localization)/config/global/navsat_transform.yaml"/>
     
     	<remap from="imu/data" to="imu/combined"/>
     	<remap from="gps/fix" to="rtk_ublox/fix"/>
-    	<remap from="odometry/filtered" to="odometry/filtered"/>
+    	<remap from="odometry/filtered" to="odometry/intermediate"/>
  	</node>
 
-	<!--
-	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_imu_gps" clear_params="true" output="screen">
-		<rosparam command="load" file="$(find ugv_localization)/config/ekf_odom_imu_gps.yaml"/>
-		<remap from="odometry/filtered" to="odometry/filtered/global"/>
+	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_imu_gps" clear_params="true">
+		<rosparam command="load" file="$(find ugv_localization)/config/global/ekf_odom_imu_gps.yaml"/>
+		<remap from="odometry/filtered" to="odometry/final"/>
 	</node>
-	-->
 
 
     <!-- publish required tf (transformation) -->
@@ -46,6 +45,6 @@
 	
 
 	<!-- visualize in rviz -->
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/robot_localization.rviz"/>
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/global.rviz"/>
 
 </launch>

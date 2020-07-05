@@ -73,8 +73,7 @@ class ImuCombine(object):
 		msg_out.z = q_out[2]
 		msg_out.w = q_out[3]
 		return msg_out
-
-
+	
 
 if __name__ == "__main__":
 
