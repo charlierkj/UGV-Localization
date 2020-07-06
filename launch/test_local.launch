@@ -46,6 +46,23 @@
     <!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_imu" args="/imu_3dm/imu imu" output="screen"/-->
 
 	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_gps" args="/rtk_ublox/fix gps" output="screen"/-->
+
+	
+	<!-- convert NatSatFix message to GPSFix message for visualization by mapviz -->
+	<node pkg="gps_common" type="fix_translator" name="fix_translator">
+		<remap from="/navsat_fix_in" to="/rtk_ublox/fix"/>
+		<remap from="/gps_fix_out" to="/gps_fix_out"/>
+	</node>
+
+	<node pkg="swri_transform_util" type="initialize_origin.py" name="initialize_origin" >
+		<param name="local_xy_frame" value="map"/>
+    	<param name="local_xy_origin" value="map"/>
+    	<rosparam param="local_xy_origins">[{ name: map, latitude: 39.326465, longitude: -76.621554, altitude: 0, heading: 0.0}]</rosparam>
+  	</node>
+
+	<node pkg="mapviz" type="mapviz" name="mapviz">
+		<param name="config" value="$(find ugv_localization)/config/mapviz.mvc"/>
+	</node>
 	
 
 	<!-- visualize in rviz -->

@@ -1,0 +1,49 @@
+capture_directory: ~
+fixed_frame: map
+target_frame: map
+fix_orientation: false
+rotate_90: false
+enable_antialiasing: true
+show_displays: true
+show_status_bar: true
+show_capture_tools: true
+window_width: 1301
+window_height: 744
+view_scale: 0.1351307
+offset_x: 0
+offset_y: 0
+use_latest_transforms: true
+background: "#a0a0a4"
+displays:
+  - type: mapviz_plugins/tile_map
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      custom_sources:
+        []
+      bing_api_key: ""
+      source: Stamen (terrain)
+  - type: mapviz_plugins/gps
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      topic: /gps_fix_out
+      color: "#ff0000"
+      draw_style: lines
+      position_tolerance: 0
+      buffer_size: 0
+      show_laps: false
+      static_arrow_sizes: false
+      arrow_size: 25
+  - type: mapviz_plugins/navsat
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      topic: /rtk_ublox/fix
+      color: "#ffff00"
+      draw_style: lines
+      position_tolerance: 0
+      buffer_size: 0
