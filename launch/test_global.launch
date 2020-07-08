@@ -26,9 +26,8 @@
     	<remap from="odometry/filtered" to="odometry/intermediate"/>
  	</node>
 
-	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_imu_gps" clear_params="true">
-		<rosparam command="load" file="$(find ugv_localization)/config/global/ekf_odom_imu_gps.yaml"/>
-		<remap from="odometry/filtered" to="odometry/final"/>
+	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /imu/combined" output="screen">
+		<param name="config_file" value="$(find ugv_localization)/config/global/ekf_odom_imu_gps.yaml"/>
 	</node>
 
 

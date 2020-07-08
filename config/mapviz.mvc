@@ -24,26 +24,13 @@ displays:
         []
       bing_api_key: ""
       source: Stamen (terrain)
-  - type: mapviz_plugins/gps
-    name: new display
-    config:
-      visible: true
-      collapsed: true
-      topic: /gps_fix_out
-      color: "#ff0000"
-      draw_style: lines
-      position_tolerance: 0
-      buffer_size: 0
-      show_laps: false
-      static_arrow_sizes: false
-      arrow_size: 25
   - type: mapviz_plugins/navsat
     name: new display
     config:
       visible: true
       collapsed: true
       topic: /rtk_ublox/fix
-      color: "#ffff00"
+      color: "#ff0000"
       draw_style: lines
       position_tolerance: 0
       buffer_size: 0

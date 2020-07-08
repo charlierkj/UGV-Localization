@@ -9,7 +9,7 @@ frequency: 50
 
 two_d_mode: true
 
-publish_tf: false
+publish_tf: true
 
 # specify the frames
 world_frame: odom
