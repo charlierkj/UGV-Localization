@@ -1,7 +1,7 @@
 <launch>
 
 	<!-- replay bag data -->
-	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/test_01.bag"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/test_02.bag"/>
 
 
 	<!-- combine imu topics and convert to convention -->

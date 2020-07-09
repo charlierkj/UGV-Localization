@@ -1,7 +1,7 @@
 <launch>
 
 	<!-- replay bag data -->
-	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/test_01.bag"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/test_02.bag"/>
 
 
 	<!-- combine imu topics and convert to convention -->
@@ -48,6 +48,8 @@
     <!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_imu" args="/imu_3dm/imu imu" output="screen"/-->
 
 	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_gps" args="/rtk_ublox/fix gps" output="screen"/-->
+
+	<node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen"/>
 
 
 	<!-- convert NatSatFix message to GPSFix message for visualization by mapviz -->
