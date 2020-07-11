@@ -16,10 +16,10 @@ class CurvePlotter(object):
 
 	def __init__(self):
 	# hardcoded topics.
-		self.fig, self.axs = plt.subplots(3)
 		self.start_time = -1
 		self.record_nofilter = np.empty(shape=(0, 4)) # t, x, y, yaw
 		self.record_filter = np.empty(shape=(0, 4))
+		self.slip_angle = [] # slip angle for filtered odometry
 		
 		self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
 		self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
@@ -28,18 +28,34 @@ class CurvePlotter(object):
 		self.tf_utm2map, self.tf_odom2utm, self.tf_map2odom = None, None, None
 
 
-	def plot_curve(self):
+	def plot_curve_pose(self, path):
+		fig, axs = plt.subplots(3)
 		for i in range(3): # x, y, yaw
-			self.axs[i].plot(self.record_nofilter[:, 0], self.record_nofilter[:, i+1], color='green', label='no filter')
-			self.axs[i].plot(self.record_filter[:, 0], self.record_filter[:, i+1], color='red', label='filter')
-		self.axs[0].set_ylabel('x')
-		self.axs[1].set_ylabel('y')
-		self.axs[2].set_ylabel('yaw')
-		self.axs[2].set_xlabel('time')
-		self.axs[0].legend()
-		path = '/home/charlierkj/asco/src/ugv_localization/figs/test_02.png'
+			axs[i].plot(self.record_nofilter[:, 0], self.record_nofilter[:, i+1], color='green', label='no filter')
+			axs[i].plot(self.record_filter[:, 0], self.record_filter[:, i+1], color='red', label='filter')
+		axs[0].set_ylabel('x')
+		axs[1].set_ylabel('y')
+		axs[2].set_ylabel('yaw')
+		axs[2].set_xlabel('time')
+		axs[0].legend()
 		plt.savefig(path)
 		plt.show()
+
+	
+	def plot_curve_slipangle(self, path):
+		fig, axs = plt.subplots(2)
+		# plot filtered yaw
+		axs[0].plot(self.record_filter[:, 0], self.record_filter[:, 3])
+		axs[0].set_ylabel('yaw')
+
+		# plot slip angle
+		axs[1].plot(self.record_filter[:, 0], self.slip_angle)
+		axs[1].set_ylabel('slip angle')
+		axs[1].set_xlabel('time')
+
+		plt.savefig(path)
+		plt.show()
+
 
 	def odom_callback(self, msg_odom):
 		time_curr = msg_odom.header.stamp.to_sec()
@@ -66,6 +82,11 @@ class CurvePlotter(object):
 				yaw = yaw % (2 * np.pi) # restrict between [0, 2*PI]
 				new_record = np.array([[dt, x, y, yaw]])
 				self.record_filter = np.vstack((self.record_filter, new_record))
+
+				# slip angle
+				vel_lin = msg_odom.twist.twist.linear # linear velocity
+				slip_angle = - np.arctan2(vel_lin.y, np.abs(vel_lin.x))
+				self.slip_angle.append(slip_angle)
 		
 
 	def tf_callback(self, msg_tfs):
@@ -94,5 +115,8 @@ if __name__ == "__main__":
 	curve_plotter = CurvePlotter()
 	rospy.spin()
 
+	path = '/home/charlierkj/asco/src/ugv_localization/figs/test_02_slipangle.png'
+
 	if rospy.is_shutdown():
-		curve_plotter.plot_curve()
+		# curve_plotter.plot_curve_pose(path)
+		curve_plotter.plot_curve_slipangle(path)

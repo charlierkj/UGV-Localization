@@ -49,14 +49,14 @@
 
 	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_gps" args="/rtk_ublox/fix gps" output="screen"/-->
 
-	<node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen"/>
+	<!-- node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen"/-->
 
 
 	<!-- convert NatSatFix message to GPSFix message for visualization by mapviz -->
-	<node pkg="gps_common" type="fix_translator" name="fix_translator">
+	<!-- node pkg="gps_common" type="fix_translator" name="fix_translator">
 		<remap from="/navsat_fix_in" to="/rtk_ublox/fix"/>
 		<remap from="/gps_fix_out" to="/gps_fix_out"/>
-	</node>
+	</node-->
 
 	<node pkg="swri_transform_util" type="initialize_origin.py" name="initialize_origin" >
 		<param name="local_xy_frame" value="map"/>
