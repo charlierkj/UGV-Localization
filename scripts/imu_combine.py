@@ -18,7 +18,7 @@ class ImuCombine(object):
 	# combine separate imu topics to publish single imu topic
 	# and convert it to conventional configuration:
 	# 	orientations measured in east-X, north-Y, up-Z world frame,
-	#	local frame transformed from 'imu_3dm' to '/base_link' 
+	#	local frame transformed from 'imu_3dm' to 'base_link' 
 
 	def __init__(self, topic_in_1, topic_in_2, topic_out):
 		# configure subscriber and publisher
@@ -73,17 +73,55 @@ class ImuCombine(object):
 		msg_out.z = q_out[2]
 		msg_out.w = q_out[3]
 		return msg_out
-	
+
+
+class ImuRefine(ImuCombine):
+	# refine single imu measurements from from 'imu_3dm' frame to 'base_link' frame. 
+
+	def __init__(self, topic_in, topic_out):
+		# configure subscriber and publisher
+		self.sub_imu = rospy.Subscriber(topic_in, Imu, self.callback)
+		self.pub_imu = rospy.Publisher(topic_out, Imu, queue_size=10)
+
+		# transformations
+		self.rot_baselink2imu = transformations.quaternion_from_euler(np.pi, 0, 0)
+
+
+	def callback(self, msg_in):
+		msg_out = msg_in
+
+		msg_out.header.frame_id = "base_link"
+		msg_out.angular_velocity = self.convert_angular_vel(msg_in.angular_velocity)
+		msg_out.angular_velocity_covariance = msg_in.angular_velocity_covariance
+
+		self.pub_imu.publish(msg_out)
+
+
+	def convert_angular_vel(self, msg_in):
+		return super(ImuRefine, self).convert_angular_vel(msg_in)
+		
 
 if __name__ == "__main__":
 
-	# hardcoded topics
-	topic_in_1 = 'imu_3dm/imu'
-	topic_in_2 = 'imu_3dm/filter'
-	topic_out = 'imu/combined'
-
 	rospy.init_node('imu_combine', anonymous=True)
-	imu_combine = ImuCombine(topic_in_1, topic_in_2, topic_out)
+
+	node_name = rospy.get_name()
+	mode = rospy.get_param(node_name + '/mode')
+
+	if mode == 'combine':
+		# hardcoded topics
+		topic_in_1 = 'imu_3dm/imu'
+		topic_in_2 = 'imu_3dm/filter'
+		topic_out = 'imu/combined'
+
+		imu_combine = ImuCombine(topic_in_1, topic_in_2, topic_out)
+
+	elif mode == 'refine':
+		topic_in = 'imu_3dm/imu'
+		topic_out = 'imu/refined'
+	
+		imu_refine = ImuRefine(topic_in, topic_out)
+
 	rospy.spin()
 
 	

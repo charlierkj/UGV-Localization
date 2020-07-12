@@ -5,7 +5,9 @@
 
 
 	<!-- combine imu topics and convert to convention -->
-	<node pkg="ugv_localization" type="imu_combine.py" name="imu_combine" output="screen"/>
+	<node pkg="ugv_localization" type="imu_combine.py" name="imu_combine" output="screen">
+		<param name="mode" value="combine"/>
+	</node>
 
 
 	<!-- get 2D baseline odometry using wheel encoder and imu -->

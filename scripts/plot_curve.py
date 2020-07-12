@@ -115,7 +115,7 @@ if __name__ == "__main__":
 	curve_plotter = CurvePlotter()
 	rospy.spin()
 
-	path = '/home/charlierkj/asco/src/ugv_localization/figs/test_02_slipangle.png'
+	path = '/home/charlierkj/asco/src/ugv_localization/figs/test_03_slipangle.png'
 
 	if rospy.is_shutdown():
 		# curve_plotter.plot_curve_pose(path)
