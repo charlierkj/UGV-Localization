@@ -24,7 +24,7 @@ class GlobalFilterWrapper(object):
 		self.subs = [self.sub_odom_wheel, self.sub_odom_gps, self.sub_imu]
 		
 		# time synchronizer
-		self.ts = message_filters.ApproximateTimeSynchronizer(self.subs, 10, 0.1)
+		self.ts = message_filters.ApproximateTimeSynchronizer(self.subs, 10, 0.2)
 		self.ts.registerCallback(self.callback)
 
 		# initial state
@@ -36,6 +36,7 @@ class GlobalFilterWrapper(object):
 
 
 	def callback(self, msg_wheel, msg_gps, msg_imu):
+		print('Initializing states ...')
 		if self.ready:
 			for sub in self.subs:
 				sub.unregister()

@@ -91,6 +91,7 @@ class ImuRefine(ImuCombine):
 		msg_out = msg_in
 
 		msg_out.header.frame_id = "base_link"
+		msg_out.header.stamp = rospy.Time.now()
 		msg_out.angular_velocity = self.convert_angular_vel(msg_in.angular_velocity)
 		msg_out.angular_velocity_covariance = msg_in.angular_velocity_covariance
 

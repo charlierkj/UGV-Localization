@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from nav_msgs.msg import Odometry
+from sensor_msgs.msg import NavSatFix, Imu
 
 from tf import transformations
 from tf2_msgs.msg import TFMessage
@@ -20,10 +21,16 @@ class CurvePlotter(object):
 		self.record_nofilter = np.empty(shape=(0, 4)) # t, x, y, yaw
 		self.record_filter = np.empty(shape=(0, 4))
 		self.slip_angle = [] # slip angle for filtered odometry
+
+		self.gps_msr = np.empty(shape=(0, 5)) # t, lat, lat_cov, lon, lon_cov
+		self.heading_msr = np.empty(shape=(0, 3)) # t, yaw, yaw_cov
 		
-		self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
-		self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
-		self.sub_tf = rospy.Subscriber('/tf_static', TFMessage, self.tf_callback)
+		#self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
+		#self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
+		#self.sub_tf = rospy.Subscriber('/tf_static', TFMessage, self.tf_callback)
+
+		self.sub_gps = rospy.Subscriber('/gps/fix', NavSatFix, self.gps_callback)
+		self.sub_heading = rospy.Subscriber('/gps/navheading', Imu, self.heading_callback)
 
 		self.tf_utm2map, self.tf_odom2utm, self.tf_map2odom = None, None, None
 
@@ -44,6 +51,7 @@ class CurvePlotter(object):
 	
 	def plot_curve_slipangle(self, path):
 		fig, axs = plt.subplots(2)
+
 		# plot filtered yaw
 		axs[0].plot(self.record_filter[:, 0], self.record_filter[:, 3])
 		axs[0].set_ylabel('yaw')
@@ -57,11 +65,48 @@ class CurvePlotter(object):
 		plt.show()
 
 
+	def plot_covariance_gps(self, path):
+		fig, axs = plt.subplots(2, 2)
+
+		# plot lat with covariance
+		axs[0, 0].plot(self.gps_msr[:, 0], self.gps_msr[:, 1])
+		axs[0, 0].set_ylabel('latitude')
+		axs[1, 0].plot(self.gps_msr[:, 0], self.gps_msr[:, 2])
+		axs[1, 0].set_ylabel('latitude covariance')
+		axs[1, 0].set_xlabel('time')
+
+		# plot lon with covariance
+		axs[0, 1].plot(self.gps_msr[:, 0], self.gps_msr[:, 3])
+		axs[0, 1].set_ylabel('longitude')
+		axs[1, 1].plot(self.gps_msr[:, 0], self.gps_msr[:, 4])
+		axs[1, 1].set_ylabel('longitude covariance')
+		axs[1, 1].set_xlabel('time')
+
+		plt.tight_layout()
+		plt.savefig(path)
+		plt.show()
+
+
+	def plot_covariance_heading(self, path):
+		fig, axs = plt.subplots(2)
+
+		# plot heading measurements with covariance
+		axs[0].plot(self.heading_msr[:, 0], self.heading_msr[:, 1])
+		axs[0].set_ylabel('heading measurement')
+		axs[1].plot(self.heading_msr[:, 0], self.heading_msr[:, 2])
+		axs[1].set_ylabel('measurement covariance')
+		axs[1].set_xlabel('time')
+
+		plt.tight_layout()
+		plt.savefig(path)
+		plt.show()
+
+
 	def odom_callback(self, msg_odom):
 		time_curr = msg_odom.header.stamp.to_sec()
 		if self.start_time == -1:
 			self.start_time = time_curr
-		print 'current timestamp: %f' % time_curr
+		# print 'current timestamp: %f' % time_curr
 		dt = time_curr - self.start_time
 		p = msg_odom.pose.pose.position # position
 		q = msg_odom.pose.pose.orientation # orientation (quaternion)
@@ -107,7 +152,29 @@ class CurvePlotter(object):
 			tf_odom2map = np.matmul(self.tf_odom2utm, self.tf_utm2map)
 			self.tf_map2odom = transformations.inverse_matrix(tf_odom2map)
 			self.sub_tf.unregister()
- 
+
+
+	def gps_callback(self, msg_gps):
+		time_curr = msg_gps.header.stamp.to_sec()
+		if self.start_time == -1:
+			self.start_time = time_curr
+		dt = time_curr - self.start_time
+		new_record = np.array([[dt, msg_gps.latitude, msg_gps.position_covariance[0], msg_gps.longitude, msg_gps.position_covariance[4]]])
+		self.gps_msr = np.vstack((self.gps_msr, new_record))
+
+
+	def heading_callback(self, msg_heading):
+		time_curr = msg_heading.header.stamp.to_sec()
+		if self.start_time == -1:
+			self.start_time = time_curr
+		dt = time_curr - self.start_time
+		
+		q = msg_heading.orientation
+		_, _, yaw = transformations.euler_from_quaternion([q.x, q.y, q.z, q.w])	
+		new_record = np.array([[dt, yaw, msg_heading.orientation_covariance[8]]])
+		self.heading_msr = np.vstack((self.heading_msr, new_record))
+
+		
 
 if __name__ == "__main__":
 
@@ -115,8 +182,13 @@ if __name__ == "__main__":
 	curve_plotter = CurvePlotter()
 	rospy.spin()
 
-	path = '/home/charlierkj/asco/src/ugv_localization/figs/test_03_slipangle.png'
+	path_pose = '/home/charlierkj/asco/src/ugv_localization/figs/test_04.png'
+	path_slipangle = '/home/charlierkj/asco/src/ugv_localization/figs/test_04_slipangle.png'
+	path_gps = '/home/charlierkj/asco/src/ugv_localization/figs/test_04_gps_msr.png'
+	path_heading = '/home/charlierkj/asco/src/ugv_localization/figs/test_04_heading_msr.png'
 
 	if rospy.is_shutdown():
-		# curve_plotter.plot_curve_pose(path)
-		curve_plotter.plot_curve_slipangle(path)
+		#curve_plotter.plot_curve_pose(path_pose)
+		#curve_plotter.plot_curve_slipangle(path_slipangle)
+		curve_plotter.plot_covariance_gps(path_gps)
+		curve_plotter.plot_covariance_heading(path_heading)

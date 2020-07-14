@@ -36,17 +36,22 @@ odom1_differential: false
 odom1_relative: false
 
 # configure imu inputs
-imu0: imu/combined
+imu0: imu/refined
 imu0_config: [false, false, false,
-              false, false, true,
+              false, false, false,
               false, false, false,
               false, false, true,
               true, false, false]
 imu0_differential: false
-imu0_relative: false
 
-# zero initial state, will be reset inside the code
-initial_state: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+imu1: gps/navheading
+imu1_config: [false, false, false,
+              false, false, true,
+              false, false, false,
+              false, false, false,
+              false, false, false]
+imu1_differential: false
+imu1_relative: false
 
 # configure initial covariance
 process_noise_covariance: [0.05, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
