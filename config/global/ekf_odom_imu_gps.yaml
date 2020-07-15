@@ -12,9 +12,9 @@ two_d_mode: true
 publish_tf: true
 
 # specify the frames
-world_frame: odom
-map_frame: map
-odom_frame: odom
+world_frame: map
+map_frame: world
+odom_frame: map
 base_link_frame: base_link
 
 # configure odometry inputs

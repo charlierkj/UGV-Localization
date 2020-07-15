@@ -30,13 +30,12 @@ class CurvePlotter(object):
 		self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
 
 		if self.mode == 'local':
-			self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
 			self.sub_tf = rospy.Subscriber('/tf_static', TFMessage, self.tf_callback)
-		elif self.mode == 'global':
-			self.sub_filter = rospy.Subscriber('/odometry/final', Odometry, self.odom_callback)
 
-		self.sub_gps = rospy.Subscriber('/rtk_ublox/fix', NavSatFix, self.gps_callback)
-		self.sub_heading = rospy.Subscriber('/imu/combined', Imu, self.heading_callback)
+		self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
+
+		#self.sub_gps = rospy.Subscriber('/rtk_ublox/fix', NavSatFix, self.gps_callback)
+		#self.sub_heading = rospy.Subscriber('/imu/combined', Imu, self.heading_callback)
 
 		self.tf_utm2map, self.tf_odom2utm, self.tf_map2odom = None, None, None
 
@@ -123,7 +122,7 @@ class CurvePlotter(object):
 			new_record = np.array([[dt, p.x, p.y, yaw]])
 			self.record_nofilter = np.vstack((self.record_nofilter, new_record))
 
-		elif msg_odom.header.frame_id == 'odom':
+		elif msg_odom.header.frame_id == 'odom' or msg_odom.header.frame_id == 'map':
 			if self.mode == 'local':
 				trans_odom2baselink = transformations.translation_matrix([p.x, p.y, p.z])
 				rot_odom2baselink = transformations.euler_matrix(euler[0], euler[1], euler[2])
@@ -206,7 +205,7 @@ if __name__ == "__main__":
 	path_heading = '/home/charlierkj/asco/src/ugv_localization/figs/%s_heading_msr.png' % data
 
 	if rospy.is_shutdown():
-		#curve_plotter.plot_curve_pose(path_pose)
-		#curve_plotter.plot_curve_slipangle(path_slipangle)
-		curve_plotter.plot_covariance_gps(path_gps)
-		curve_plotter.plot_covariance_heading(path_heading)
+		curve_plotter.plot_curve_pose(path_pose)
+		curve_plotter.plot_curve_slipangle(path_slipangle)
+		#curve_plotter.plot_covariance_gps(path_gps)
+		#curve_plotter.plot_covariance_heading(path_heading)

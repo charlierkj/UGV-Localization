@@ -1,5 +1,7 @@
 // ROS
 #include "ros/ros.h"
+#include "tf2_ros/static_transform_broadcaster.h"
+#include "tf2/LinearMath/Transform.h"
 
 // message
 #include "sensor_msgs/NavSatFix.h"
@@ -12,7 +14,7 @@
 class GPSOdom
 {
 	private:
-		ros::NodeHandle nh;
+		ros::NodeHandle nh_;
 		ros::Subscriber sub;
 		ros::Publisher pub;
 
@@ -29,3 +31,6 @@ class GPSOdom
 				std::string frame_id, std::string child_frame_id);
 		~GPSOdom();
 		void callback(const sensor_msgs::NavSatFix& msg_gps);
+};
+
+

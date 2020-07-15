@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   sensor_msgs
+  tf2
   tf2_ros
 )
 
@@ -109,9 +110,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES ugv_localization
-   CATKIN_DEPENDS robot_localization roscpp rospy sensor_msgs tf2_ros
+   INCLUDE_DIRS include
+   LIBRARIES ugv_localization
+   CATKIN_DEPENDS robot_localization roscpp rospy sensor_msgs tf2 tf2_ros
 #  DEPENDS system_lib
 )
 
@@ -122,7 +123,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -130,6 +131,7 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/ugv_localization.cpp
 # )
+add_library(gps_odom src/gps_odom.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -141,6 +143,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/ugv_localization_node.cpp)
 add_executable(datum_tf_node src/datum_tf_node.cpp)
+add_executable(gps_odom_node src/gps_odom_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,6 +160,8 @@ add_executable(datum_tf_node src/datum_tf_node.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(datum_tf_node ${catkin_LIBRARIES})
+target_link_libraries(gps_odom ${catkin_LIBRARIES})
+target_link_libraries(gps_odom_node ${catkin_LIBRARIES} gps_odom)
 
 #############
 ## Install ##

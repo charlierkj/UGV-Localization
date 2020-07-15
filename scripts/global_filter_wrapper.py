@@ -66,7 +66,7 @@ class GlobalFilterWrapper(object):
 	def run_filter(self):
 		cmd_param = "rosparam load %s ekf_odom_gps_imu" % self.config_file
 		cmd_set = "rosparam set /ekf_odom_gps_imu/initial_state '%s'" % self.init_state
-		cmd_run = "rosrun robot_localization ekf_localization_node __name:=ekf_odom_gps_imu odometry/filtered:=/odometry/final"
+		cmd_run = "rosrun robot_localization ekf_localization_node __name:=ekf_odom_gps_imu"# odometry/filtered:=/odometry/final"
 		cmd_list = [cmd_param, cmd_set, cmd_run]
 		print('initial state: ', self.init_state)
 		for cmd in cmd_list:
