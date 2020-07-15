@@ -1,7 +1,11 @@
 <launch>
 
+	<!-- arguments -->
+	<arg name="data" default="test_01"/>
+
+
 	<!-- replay bag data -->
-	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/test_01.bag"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag"/>
 
 
 	<!-- combine imu topics and convert to convention -->
@@ -11,37 +15,37 @@
 
 
 	<!-- get 2D baseline odometry using wheel encoder and imu -->
-	<node pkg="ugv_localization" type="wheel_imu_odom.py" name="wheel_imu_odom" args="/wheel_odometry /imu/combined /odometry/wheel_imu" output="screen"/>
+	<!-- node pkg="ugv_localization" type="wheel_imu_odom.py" name="wheel_imu_odom" args="/wheel_odometry /imu/combined /odometry/wheel_imu" output="screen"/-->
 
 
 	<!-- publish utm to world frame transformation -->
-	<node pkg="ugv_localization" type="datum_tf_node" name="datum_tf_node" output="screen">
+	<!--node pkg="ugv_localization" type="datum_tf_node" name="datum_tf_node" output="screen">
 		<param name="latitude" type="double" value="39.326465"/>
 		<param name="longitude" type="double" value="-76.621554"/>
 		<param name="yaw" type="double" value="0.0"/>
 		<param name="frame_id" type="string" value="utm"/>
 		<param name="child_frame_id" type="string" value="map"/>
-	</node>
+	</node-->
 
 
 	<!-- fusion by robot_localization package -->
- 	<node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_node" clear_params="true">
+ 	<!--node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization_node" clear_params="true">
 		<rosparam command="load" file="$(find ugv_localization)/config/local/ekf_odom_imu_gps.yaml"/>
-	</node>
+	</node-->
 
-    <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true">
+    <!--node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true">
     	<rosparam command="load" file="$(find ugv_localization)/config/local/navsat_transform.yaml"/>
     
     	<remap from="imu/data" to="imu/combined"/>
     	<remap from="gps/fix" to="rtk_ublox/fix"/>
     	<remap from="odometry/filtered" to="odometry/filtered"/>
- 	</node>
+ 	</node-->
 
 
     <!-- publish required tf (transformation) -->
-	<node pkg="tf2_ros" type="static_transform_publisher" name="base_link2gps" args="0 0 0 0 0 0 base_link gps"/>
+	<!-- node pkg="tf2_ros" type="static_transform_publisher" name="base_link2gps" args="0 0 0 0 0 0 base_link gps"/>
 
-	<node pkg="tf2_ros" type="static_transform_publisher" name="world2map" args="0 0 0 0 0 0 map /world"/>
+	<node pkg="tf2_ros" type="static_transform_publisher" name="world2map" args="0 0 0 0 0 0 map /world"/-->
 
 
 	<!-- plot in python -->
@@ -51,7 +55,10 @@
 
 	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_gps" args="/rtk_ublox/fix gps" output="screen"/-->
 
-	<node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen"/>
+	<!-- node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen">
+		<param name="mode" value="local"/>
+		<param name="data" value="$(arg data)"/>
+	</node -->
 
 
 	<!-- convert NatSatFix message to GPSFix message for visualization by mapviz -->
@@ -60,18 +67,20 @@
 		<remap from="/gps_fix_out" to="/gps_fix_out"/>
 	</node-->
 
-	<node pkg="swri_transform_util" type="initialize_origin.py" name="initialize_origin" >
+	<!-- node pkg="swri_transform_util" type="initialize_origin.py" name="initialize_origin" >
 		<param name="local_xy_frame" value="map"/>
     	<param name="local_xy_origin" value="map"/>
     	<rosparam param="local_xy_origins">[{ name: map, latitude: 39.326465, longitude: -76.621554, altitude: 0, heading: 0.0}]</rosparam>
-  	</node>
+  	</node -->
 
-	<node pkg="mapviz" type="mapviz" name="mapviz">
+	<!-- node pkg="mapviz" type="mapviz" name="mapviz">
 		<param name="config" value="$(find ugv_localization)/config/mapviz.mvc"/>
-	</node>
+	</node -->
 	
 
 	<!-- visualize in rviz -->
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/compare.rviz"/>
+    <!-- node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/compare.rviz"/ -->
+
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/>
 
 </launch>

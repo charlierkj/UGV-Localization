@@ -47,7 +47,9 @@ class ImuCombine(object):
 		msg_out.linear_acceleration_covariance = msg_imu.linear_acceleration_covariance
 
 		msg_out.orientation = self.convert_orientation(msg_filter.orientation)
-		msg_out.orientation_covariance = msg_filter.orientation_covariance
+		msg_out.orientation_covariance[0] = msg_filter.orientation_covariance[4]
+		msg_out.orientation_covariance[4] = msg_filter.orientation_covariance[0]
+		msg_out.orientation_covariance[8] = msg_filter.orientation_covariance[8]
 
 		self.pub_imu.publish(msg_out)
 

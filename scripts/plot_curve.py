@@ -15,8 +15,10 @@ from tf2_msgs.msg import TFMessage
 
 class CurvePlotter(object):
 
-	def __init__(self):
+	def __init__(self, mode='global'):
 	# hardcoded topics.
+		self.mode = mode
+
 		self.start_time = -1
 		self.record_nofilter = np.empty(shape=(0, 4)) # t, x, y, yaw
 		self.record_filter = np.empty(shape=(0, 4))
@@ -25,12 +27,16 @@ class CurvePlotter(object):
 		self.gps_msr = np.empty(shape=(0, 5)) # t, lat, lat_cov, lon, lon_cov
 		self.heading_msr = np.empty(shape=(0, 3)) # t, yaw, yaw_cov
 		
-		#self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
-		#self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
-		#self.sub_tf = rospy.Subscriber('/tf_static', TFMessage, self.tf_callback)
+		self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
 
-		self.sub_gps = rospy.Subscriber('/gps/fix', NavSatFix, self.gps_callback)
-		self.sub_heading = rospy.Subscriber('/gps/navheading', Imu, self.heading_callback)
+		if self.mode == 'local':
+			self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
+			self.sub_tf = rospy.Subscriber('/tf_static', TFMessage, self.tf_callback)
+		elif self.mode == 'global':
+			self.sub_filter = rospy.Subscriber('/odometry/final', Odometry, self.odom_callback)
+
+		self.sub_gps = rospy.Subscriber('/rtk_ublox/fix', NavSatFix, self.gps_callback)
+		self.sub_heading = rospy.Subscriber('/imu/combined', Imu, self.heading_callback)
 
 		self.tf_utm2map, self.tf_odom2utm, self.tf_map2odom = None, None, None
 
@@ -116,22 +122,29 @@ class CurvePlotter(object):
 			yaw = euler[2] % (2 * np.pi) # restrict between [0, 2*PI]
 			new_record = np.array([[dt, p.x, p.y, yaw]])
 			self.record_nofilter = np.vstack((self.record_nofilter, new_record))
+
 		elif msg_odom.header.frame_id == 'odom':
-			trans_odom2baselink = transformations.translation_matrix([p.x, p.y, p.z])
-			rot_odom2baselink = transformations.euler_matrix(euler[0], euler[1], euler[2])
-			tf_odom2baselink = np.matmul(trans_odom2baselink, rot_odom2baselink)
-			if self.tf_map2odom is not None:
-				tf_map2baselink = np.matmul(self.tf_map2odom, tf_odom2baselink)
-				x, y, _ = transformations.translation_from_matrix(tf_map2baselink)
-				_, _, yaw = transformations.euler_from_matrix(tf_map2baselink)
-				yaw = yaw % (2 * np.pi) # restrict between [0, 2*PI]
-				new_record = np.array([[dt, x, y, yaw]])
+			if self.mode == 'local':
+				trans_odom2baselink = transformations.translation_matrix([p.x, p.y, p.z])
+				rot_odom2baselink = transformations.euler_matrix(euler[0], euler[1], euler[2])
+				tf_odom2baselink = np.matmul(trans_odom2baselink, rot_odom2baselink)
+				if self.tf_map2odom is not None:
+					tf_map2baselink = np.matmul(self.tf_map2odom, tf_odom2baselink)
+					x, y, _ = transformations.translation_from_matrix(tf_map2baselink)
+					_, _, yaw = transformations.euler_from_matrix(tf_map2baselink)
+					yaw = yaw % (2 * np.pi) # restrict between [0, 2*PI]
+					new_record = np.array([[dt, x, y, yaw]])
+					self.record_filter = np.vstack((self.record_filter, new_record))
+			
+			elif self.mode == 'global':
+				yaw = euler[2] % (2 * np.pi)
+				new_record = np.array([[dt, p.x, p.y, yaw]])
 				self.record_filter = np.vstack((self.record_filter, new_record))
 
-				# slip angle
-				vel_lin = msg_odom.twist.twist.linear # linear velocity
-				slip_angle = - np.arctan2(vel_lin.y, np.abs(vel_lin.x))
-				self.slip_angle.append(slip_angle)
+			# slip angle
+			vel_lin = msg_odom.twist.twist.linear # linear velocity
+			slip_angle = - np.arctan2(vel_lin.y, np.abs(vel_lin.x))
+			self.slip_angle.append(slip_angle)
 		
 
 	def tf_callback(self, msg_tfs):
@@ -179,13 +192,18 @@ class CurvePlotter(object):
 if __name__ == "__main__":
 
 	rospy.init_node('plot_curve', anonymous=True)
-	curve_plotter = CurvePlotter()
+
+	node_name = rospy.get_name()
+	mode = rospy.get_param(node_name + '/mode')
+	data = rospy.get_param(node_name + '/data')
+
+	curve_plotter = CurvePlotter(mode)
 	rospy.spin()
 
-	path_pose = '/home/charlierkj/asco/src/ugv_localization/figs/test_04.png'
-	path_slipangle = '/home/charlierkj/asco/src/ugv_localization/figs/test_04_slipangle.png'
-	path_gps = '/home/charlierkj/asco/src/ugv_localization/figs/test_04_gps_msr.png'
-	path_heading = '/home/charlierkj/asco/src/ugv_localization/figs/test_04_heading_msr.png'
+	path_pose = '/home/charlierkj/asco/src/ugv_localization/figs/%s_pose.png' % data
+	path_slipangle = '/home/charlierkj/asco/src/ugv_localization/figs/%s_slipangle.png' % data
+	path_gps = '/home/charlierkj/asco/src/ugv_localization/figs/%s_gps_msr.png' % data
+	path_heading = '/home/charlierkj/asco/src/ugv_localization/figs/%s_heading_msr.png' % data
 
 	if rospy.is_shutdown():
 		#curve_plotter.plot_curve_pose(path_pose)
