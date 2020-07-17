@@ -97,6 +97,9 @@ class ImuRefine(ImuCombine):
 		msg_out.angular_velocity = self.convert_angular_vel(msg_in.angular_velocity)
 		msg_out.angular_velocity_covariance = msg_in.angular_velocity_covariance
 
+		msg_out.linear_acceleration.y = - msg_in.linear_acceleration.y
+		msg_out.linear_acceleration.z = - msg_in.linear_acceleration.z
+
 		self.pub_imu.publish(msg_out)
 
 

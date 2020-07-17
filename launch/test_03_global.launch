@@ -8,7 +8,7 @@
 	<!-- replay bag data -->
 	<param name="use_sim_time" value="true"/>
 
-	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock" output="screen"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock"/>
 
 
 	<!-- combine imu topics and convert to convention -->
@@ -33,26 +33,13 @@
 
 
 	<!-- fusion by robot_localization package -->
- 	<!-- node pkg="robot_localization" type="ekf_localization_node" name="ekf_odom_imu" clear_params="true">
-		<rosparam command="load" file="$(find ugv_localization)/config/test_03_global/ekf_odom_imu.yaml"/>
-		<remap from="odometry/filtered" to="odometry/intermediate"/>
-	</node -->
-
-    <!-- node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true">
-    	<rosparam command="load" file="$(find ugv_localization)/config/test_03_global/navsat_transform.yaml"/>
-    
-    	<remap from="imu/data" to="gps/navheading"/>
-    	<remap from="gps/fix" to="gps/fix"/>
-    	<remap from="odometry/filtered" to="odometry/intermediate"/>
- 	</node -->
-
-	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
+ 	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
 		<param name="config_file" value="$(find ugv_localization)/config/test_03_global/ekf_odom_imu_gps.yaml"/>
 	</node>
 
 
     <!-- publish required tf (transformation) -->
-	<!-- node pkg="tf2_ros" type="static_transform_publisher" name="base_link2gps" args="0 0 0 0 0 0 base_link gps"/ -->
+	<node pkg="tf2_ros" type="static_transform_publisher" name="base_link2gps" args="0 0 0 0 0 0 base_link gps"/>
 
 	<node pkg="tf2_ros" type="static_transform_publisher" name="world2map" args="0 0 0 0 0 0 map /world"/>
 
@@ -65,13 +52,19 @@
 	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_gps" args="/rtk_ublox/fix gps" output="screen"/-->
 	
 
-	<!-- node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen">
+	<node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen">
 		<param name="mode" value="global"/>
 		<param name="data" value="$(arg data)"/>
-	</node -->
+	</node>
 	
 
+	<!-- publish /world/fix and visualize with rviz_satellite -->
+	<node pkg="ugv_localization" type="world_frame_gps_publisher.py" name="world_frame_gps_publisher"/>
+
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/>	
+
+
 	<!-- visualize in rviz -->
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/global.rviz"/>
+    <!-- node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/global.rviz"/ -->
 
 </launch>

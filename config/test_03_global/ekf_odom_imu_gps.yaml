@@ -5,11 +5,13 @@
 #  roll_vel, pitch_vel, yaw_vel,
 #  x_accel , y_accel  , z_accel] ( 15 states)
 
-frequency: 50
+frequency: 100
 
 two_d_mode: true
 
 publish_tf: false
+
+print_diagnostics: true
 
 # specify the frames
 world_frame: map
