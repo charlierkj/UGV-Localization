@@ -32,8 +32,12 @@
 	</node>
 
 
+	<!-- rescale GPS cov -->
+	<node pkg="ugv_localization" type="gps_cov_scaler.py" name="gps_cov_scaler" output="screen"/>
+
+
 	<!-- fusion by robot_localization package -->
- 	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
+ 	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps_scaled /gps/navheading" output="screen">
 		<param name="config_file" value="$(find ugv_localization)/config/test_03_global/ekf_odom_imu_gps.yaml"/>
 	</node>
 
@@ -45,17 +49,17 @@
 
 
 	<!-- plot in python -->
-    <!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_odom" args="/odometry/wheel_imu odom" output="screen"/-->
+    <node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_odom" args="/odometry/filtered odom" output="screen"/>
 
     <!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_imu" args="/imu_3dm/imu imu" output="screen"/-->
 
 	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_gps" args="/rtk_ublox/fix gps" output="screen"/-->
 	
 
-	<node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen">
+	<!-- node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen">
 		<param name="mode" value="global"/>
 		<param name="data" value="$(arg data)"/>
-	</node>
+	</node -->
 	
 
 	<!-- publish /world/fix and visualize with rviz_satellite -->

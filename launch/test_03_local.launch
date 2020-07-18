@@ -31,13 +31,13 @@
 		<rosparam command="load" file="$(find ugv_localization)/config/test_03_local/ekf_odom_imu_gps.yaml"/>
 	</node>
 
-    <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true">
+    <!-- node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform_node" respawn="true" clear_params="true">
     	<rosparam command="load" file="$(find ugv_localization)/config/test_03_local/navsat_transform.yaml"/>
     
     	<remap from="imu/data" to="gps/navheading"/>
     	<remap from="gps/fix" to="gps/fix"/>
     	<remap from="odometry/filtered" to="odometry/filtered"/>
- 	</node>
+ 	</node -->
 
 
     <!-- publish required tf (transformation) -->

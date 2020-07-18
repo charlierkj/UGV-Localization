@@ -20,8 +20,8 @@ class CurvePlotter(object):
 		self.mode = mode
 
 		self.start_time = -1
-		self.record_nofilter = np.empty(shape=(0, 4)) # t, x, y, yaw
-		self.record_filter = np.empty(shape=(0, 4))
+		self.record_nofilter = np.empty(shape=(0, 4)) # t, x, y, yaw, x_cov, y_cov, yaw_cov
+		self.record_filter = np.empty(shape=(0, 7)) # t, x, y, yaw
 		self.slip_angle = [] # slip angle for filtered odometry
 
 		self.gps_msr = np.empty(shape=(0, 5)) # t, lat, lat_cov, lon, lon_cov
@@ -38,12 +38,14 @@ class CurvePlotter(object):
 
 		self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
 
-		#self.sub_gps = rospy.Subscriber('/rtk_ublox/fix', NavSatFix, self.gps_callback)
-		#self.sub_heading = rospy.Subscriber('/imu/combined', Imu, self.heading_callback)
+		#self.sub_gps = rospy.Subscriber('/gps/fix', NavSatFix, self.gps_callback)
+		#self.sub_gps_odom = rospy.Subscriber('/odometry/gps', Odometry, self.gps_odom_callback)
+		self.gps_odom_record = np.empty((0, 3)) # t, x, x_cov
+		#self.sub_heading = rospy.Subscriber('/gps/navheading', Imu, self.heading_callback)
 
-		self.sub_imu_3dm = rospy.Subscriber('/imu/refined', Imu, self.imu_callback)
-		self.sub_t265_ang_vel = rospy.Subscriber('/rs_t265/gyro/sample', Imu, self.imu_callback)
-		self.sub_t265_lin_accel = rospy.Subscriber('/rs_t265/accel/sample', Imu, self.imu_callback)
+		#self.sub_imu_3dm = rospy.Subscriber('/imu/refined', Imu, self.imu_callback)
+		#self.sub_t265_ang_vel = rospy.Subscriber('/rs_t265/gyro/sample', Imu, self.imu_callback)
+		#self.sub_t265_lin_accel = rospy.Subscriber('/rs_t265/accel/sample', Imu, self.imu_callback)
 
 		self.tf_utm2map, self.tf_odom2utm, self.tf_map2odom = None, None, None
 
@@ -111,7 +113,7 @@ class CurvePlotter(object):
 		axs[1].set_xlabel('time')
 
 		plt.tight_layout()
-		plt.savefig(path)
+		#plt.savefig(path)
 		plt.show()
 
 
@@ -197,6 +199,29 @@ class CurvePlotter(object):
 		plt.show()
 
 
+	def plot_covariance_odom(self, path):
+		# plot pose covariance of filtered odometry
+		fig, axs = plt.subplots(2, 3)
+		axs[0, 0].plot(self.record_filter[:, 0], self.record_filter[:, 1])
+		axs[0, 0].set_ylabel('x')
+		axs[1, 0].plot(self.record_filter[:, 0], self.record_filter[:, 4])
+		axs[1, 0].set_ylabel('x cov')
+
+		axs[0, 1].plot(self.record_filter[:, 0], self.record_filter[:, 2])
+		axs[0, 1].set_ylabel('y')
+		axs[1, 1].plot(self.record_filter[:, 0], self.record_filter[:, 5])
+		axs[1, 1].set_ylabel('y cov')
+
+		axs[0, 2].plot(self.record_filter[:, 0], self.record_filter[:, 3])
+		axs[0, 2].set_ylabel('yaw')
+		axs[1, 2].plot(self.record_filter[:, 0], self.record_filter[:, 6])
+		axs[1, 2].set_ylabel('yaw cov')
+
+		plt.tight_layout()
+		plt.savefig(path)
+		plt.show()
+
+
 	def odom_callback(self, msg_odom):
 		time_curr = msg_odom.header.stamp.to_sec()
 		if self.start_time == -1:
@@ -206,6 +231,7 @@ class CurvePlotter(object):
 		p = msg_odom.pose.pose.position # position
 		q = msg_odom.pose.pose.orientation # orientation (quaternion)
 		euler = transformations.euler_from_quaternion([q.x, q.y, q.z, q.w]) # orientation (euler)
+		cov = msg_odom.pose.covariance # covariance
 
 		if msg_odom.header.frame_id == '/world':
 			yaw = euler[2] % (2 * np.pi) # restrict between [0, 2*PI]
@@ -227,7 +253,7 @@ class CurvePlotter(object):
 			
 			elif self.mode == 'global':
 				yaw = euler[2] % (2 * np.pi)
-				new_record = np.array([[dt, p.x, p.y, yaw]])
+				new_record = np.array([[dt, p.x, p.y, yaw, cov[0], cov[7], cov[35]]])
 				self.record_filter = np.vstack((self.record_filter, new_record))
 
 			# slip angle
@@ -261,8 +287,25 @@ class CurvePlotter(object):
 		if self.start_time == -1:
 			self.start_time = time_curr
 		dt = time_curr - self.start_time
+		#if self.gps_msr.shape[0] > 0:
+		#	diff = np.abs(msg_gps.longitude - self.gps_msr[-1, 3])
+		#	print(diff)
+		#	print('cov: ',  msg_gps.position_covariance[4])
 		new_record = np.array([[dt, msg_gps.latitude, msg_gps.position_covariance[0], msg_gps.longitude, msg_gps.position_covariance[4]]])
 		self.gps_msr = np.vstack((self.gps_msr, new_record))
+
+
+	def gps_odom_callback(self, msg_gps):
+		time_curr = msg_gps.header.stamp.to_sec()
+		if self.start_time == -1:
+			self.start_time = time_curr
+		dt = time_curr - self.start_time
+		#if self.gps_odom_record.shape[0] > 0:
+		#	diff = np.abs(msg_gps.pose.pose.position.x - self.gps_odom_record[-1, 1])
+		#	print(diff)
+		#	print('cov: ',  msg_gps.pose.covariance[0])
+		new_record = np.array([[dt, msg_gps.pose.pose.position.x, msg_gps.pose.covariance[0]]])
+		self.gps_odom_record = np.vstack((self.gps_odom_record, new_record))
 
 
 	def heading_callback(self, msg_heading):
@@ -272,7 +315,11 @@ class CurvePlotter(object):
 		dt = time_curr - self.start_time
 		
 		q = msg_heading.orientation
-		_, _, yaw = transformations.euler_from_quaternion([q.x, q.y, q.z, q.w])	
+		_, _, yaw = transformations.euler_from_quaternion([q.x, q.y, q.z, q.w])
+		#if self.heading_msr.shape[0] > 0:
+		#	diff = np.abs(yaw - self.heading_msr[-1, 1])
+		#	print(diff)
+		#	print('cov: ',  msg_heading.orientation_covariance[8])
 		new_record = np.array([[dt, yaw, msg_heading.orientation_covariance[8]]])
 		self.heading_msr = np.vstack((self.heading_msr, new_record))
 
@@ -312,10 +359,12 @@ if __name__ == "__main__":
 	path_gps = '/home/charlierkj/asco/src/ugv_localization/figs/%s_gps_msr.png' % data
 	path_heading = '/home/charlierkj/asco/src/ugv_localization/figs/%s_heading_msr.png' % data
 	path_imu_continuous = '/home/charlierkj/asco/src/ugv_localization/figs/%s_imu_vs_t265.png' % data
+	path_cov_odom = '/home/charlierkj/asco/src/ugv_localization/figs/%s_cov_odom.png' % data
 
-	if rospy.is_shutdown():
+	#if rospy.is_shutdown():
 		#curve_plotter.plot_curve_pose(path_pose)
 		#curve_plotter.plot_curve_slipangle(path_slipangle)
 		#curve_plotter.plot_covariance_gps(path_gps)
 		#curve_plotter.plot_covariance_heading(path_heading)
-		curve_plotter.plot_imu_continuous(path_imu_continuous, mode='separate', t_min=50)
+		#curve_plotter.plot_imu_continuous(path_imu_continuous, mode='separate', t_min=50)
+		#curve_plotter.plot_covariance_odom(path_cov_odom)
