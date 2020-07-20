@@ -29,12 +29,12 @@
 		<param name="longitude" type="double" value="-76.621554"/>
 		<param name="frame_id" type="string" value="map"/>
 		<param name="child_frame_id" type="string" value="base_link"/>
-		<param name="cov_threshold" type="double" value="0"/>
+		<param name="cov_threshold" type="double" value="0.005"/>
 	</node>
 
 
 	<!-- rescale GPS cov -->
-	<!-- node pkg="ugv_localization" type="gps_cov_scaler.py" name="gps_cov_scaler" output="screen"/ -->
+	<node pkg="ugv_localization" type="gps_cov_handler.py" name="gps_cov_handler" output="screen"/>
 
 
 	<!-- fusion by robot_localization package -->

@@ -317,10 +317,10 @@ class CurvePlotter(object):
 		q = msg_heading.orientation
 		_, _, yaw = transformations.euler_from_quaternion([q.x, q.y, q.z, q.w])
 		yaw = yaw % (2 * np.pi)
-		#if self.heading_msr.shape[0] > 0:
-		#	diff = np.abs(yaw - self.heading_msr[-1, 1])
-		#	print(diff)
-		#	print('cov: ',  msg_heading.orientation_covariance[8])
+		if self.heading_msr.shape[0] > 0:
+			diff = np.abs(yaw - self.heading_msr[-1, 1])
+			print(diff)
+			print('cov: ',  msg_heading.orientation_covariance[8])
 		new_record = np.array([[dt, yaw, msg_heading.orientation_covariance[8]]])
 		self.heading_msr = np.vstack((self.heading_msr, new_record))
 

@@ -11,6 +11,9 @@ two_d_mode: true
 
 publish_tf: false
 
+# debug: true
+# debug_out_file: /home/charlierkj/asco/src/ugv_localization/debug/file.txt
+
 # specify the frames
 world_frame: map
 map_frame: world
@@ -43,7 +46,7 @@ imu0_config: [false, false, false,
               true, false, false]
 imu0_differential: false
 
-imu1: gps/navheading
+imu1: gps/navheading/cropped
 imu1_config: [false, false, false,
               false, false, true,
               false, false, false,
