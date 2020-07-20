@@ -20,8 +20,8 @@ class CurvePlotter(object):
 		self.mode = mode
 
 		self.start_time = -1
-		self.record_nofilter = np.empty(shape=(0, 4)) # t, x, y, yaw, x_cov, y_cov, yaw_cov
-		self.record_filter = np.empty(shape=(0, 7)) # t, x, y, yaw
+		self.record_nofilter = np.empty(shape=(0, 4)) # t, x, y, yaw
+		self.record_filter = np.empty(shape=(0, 7)) # t, x, y, yaw, x_cov, y_cov, yaw_cov
 		self.slip_angle = [] # slip angle for filtered odometry
 
 		self.gps_msr = np.empty(shape=(0, 5)) # t, lat, lat_cov, lon, lon_cov
@@ -40,8 +40,8 @@ class CurvePlotter(object):
 
 		#self.sub_gps = rospy.Subscriber('/gps/fix', NavSatFix, self.gps_callback)
 		#self.sub_gps_odom = rospy.Subscriber('/odometry/gps', Odometry, self.gps_odom_callback)
-		self.gps_odom_record = np.empty((0, 3)) # t, x, x_cov
-		#self.sub_heading = rospy.Subscriber('/gps/navheading', Imu, self.heading_callback)
+		#self.gps_odom_record = np.empty((0, 3)) # t, x, x_cov
+		self.sub_heading = rospy.Subscriber('/gps/navheading', Imu, self.heading_callback)
 
 		#self.sub_imu_3dm = rospy.Subscriber('/imu/refined', Imu, self.imu_callback)
 		#self.sub_t265_ang_vel = rospy.Subscriber('/rs_t265/gyro/sample', Imu, self.imu_callback)
@@ -316,6 +316,7 @@ class CurvePlotter(object):
 		
 		q = msg_heading.orientation
 		_, _, yaw = transformations.euler_from_quaternion([q.x, q.y, q.z, q.w])
+		yaw = yaw % (2 * np.pi)
 		#if self.heading_msr.shape[0] > 0:
 		#	diff = np.abs(yaw - self.heading_msr[-1, 1])
 		#	print(diff)
@@ -341,6 +342,12 @@ class CurvePlotter(object):
 			new_record = np.array([[dt, msg_imu.linear_acceleration.z, msg_imu.linear_acceleration.x, msg_imu.linear_acceleration.y]])
 			self.t265_lin_accel = np.vstack((self.t265_lin_accel, new_record))
 
+	def save_results(self):
+		path_filter = '/home/charlierkj/asco/src/ugv_localization/records/test_03_filter_(no_gps).npy'
+		path_heading = '/home/charlierkj/asco/src/ugv_localization/records/test_03_heading_msr_(no_gps).npy'
+		np.save(path_filter, self.record_filter)
+		np.save(path_heading, self.heading_msr)
+
 		
 
 if __name__ == "__main__":
@@ -361,10 +368,11 @@ if __name__ == "__main__":
 	path_imu_continuous = '/home/charlierkj/asco/src/ugv_localization/figs/%s_imu_vs_t265.png' % data
 	path_cov_odom = '/home/charlierkj/asco/src/ugv_localization/figs/%s_cov_odom.png' % data
 
-	#if rospy.is_shutdown():
+	if rospy.is_shutdown():
 		#curve_plotter.plot_curve_pose(path_pose)
 		#curve_plotter.plot_curve_slipangle(path_slipangle)
 		#curve_plotter.plot_covariance_gps(path_gps)
 		#curve_plotter.plot_covariance_heading(path_heading)
 		#curve_plotter.plot_imu_continuous(path_imu_continuous, mode='separate', t_min=50)
 		#curve_plotter.plot_covariance_odom(path_cov_odom)
+		curve_plotter.save_results()

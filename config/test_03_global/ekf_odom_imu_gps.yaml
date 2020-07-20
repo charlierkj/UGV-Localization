@@ -26,7 +26,7 @@ odom0_config: [false, false, false,
                false, false, false]
 odom0_differential: false
 
-odom1: odometry/gps_scaled
+odom1: odometry/gps
 odom1_config: [true, true, false,
                false, false, false,
                false, false, false,
@@ -43,13 +43,13 @@ imu0_config: [false, false, false,
               true, false, false]
 imu0_differential: false
 
-#imu1: gps/navheading
-#imu1_config: [false, false, false,
-#              false, false, true,
-#              false, false, false,
-#              false, false, false,
-#              false, false, false]
-#imu1_differential: false
+imu1: gps/navheading
+imu1_config: [false, false, false,
+              false, false, true,
+              false, false, false,
+              false, false, false,
+              false, false, false]
+imu1_differential: false
 
 # zero initial state, will be reset inside the code
 initial_state: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]

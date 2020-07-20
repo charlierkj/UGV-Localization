@@ -8,7 +8,7 @@
 	<!-- replay bag data -->
 	<param name="use_sim_time" value="true"/>
 
-	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock" output="screen"/>
 
 
 	<!-- combine imu topics and convert to convention -->
@@ -29,15 +29,16 @@
 		<param name="longitude" type="double" value="-76.621554"/>
 		<param name="frame_id" type="string" value="map"/>
 		<param name="child_frame_id" type="string" value="base_link"/>
+		<param name="cov_threshold" type="double" value="0"/>
 	</node>
 
 
 	<!-- rescale GPS cov -->
-	<node pkg="ugv_localization" type="gps_cov_scaler.py" name="gps_cov_scaler" output="screen"/>
+	<!-- node pkg="ugv_localization" type="gps_cov_scaler.py" name="gps_cov_scaler" output="screen"/ -->
 
 
 	<!-- fusion by robot_localization package -->
- 	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps_scaled /gps/navheading" output="screen">
+ 	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
 		<param name="config_file" value="$(find ugv_localization)/config/test_03_global/ekf_odom_imu_gps.yaml"/>
 	</node>
 
@@ -49,7 +50,7 @@
 
 
 	<!-- plot in python -->
-    <node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_odom" args="/odometry/filtered odom" output="screen"/>
+    <!-- node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_odom" args="/odometry/filtered odom" output="screen"/ -->
 
     <!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_imu" args="/imu_3dm/imu imu" output="screen"/-->
 
