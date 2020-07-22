@@ -58,9 +58,9 @@ class GPSCovHandler(object):
 if __name__ == "__main__":
 
 	topic_in = '/gps/navheading'
-	topic_out = '/gps/navheading/cropped'
-	scale = 1
-	cov_threshold = 0.005
+	topic_out = '/gps/navheading/scaled'
+	scale = 1000
+	cov_threshold = 1000
 
 	rospy.init_node('gps_cov_handler', anonymous=True)
 	gps_cov_handler = GPSCovHandler(topic_in, topic_out, scale, cov_threshold, msr='heading')

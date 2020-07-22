@@ -12,6 +12,7 @@ int main(int argc, char** argv)
 	double lat, lon, yaw;
 	std::string frame_id, child_frame_id;
 	double cov_threshold;
+	double cov_scale;
 
 	nh.getParam(node_name+"/topic_gps", topic_gps);
 	nh.getParam(node_name+"/topic_odom", topic_odom);
@@ -21,8 +22,9 @@ int main(int argc, char** argv)
 	nh.getParam(node_name+"/frame_id", frame_id);
 	nh.getParam(node_name+"/child_frame_id", child_frame_id);
 	nh.getParam(node_name+"/cov_threshold", cov_threshold);
+	nh.getParam(node_name+"/cov_scale", cov_scale);
 
-	GPSOdom gps_odom(nh, topic_gps, topic_odom, lat, lon, yaw, frame_id, child_frame_id, cov_threshold);
+	GPSOdom gps_odom(nh, topic_gps, topic_odom, lat, lon, yaw, frame_id, child_frame_id, cov_threshold, cov_scale);
 	ros::spin();
 	return 0;
 }

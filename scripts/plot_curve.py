@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import NavSatFix, Imu
+from ublox_msgs.msg import NavRELPOSNED9
 
 from tf import transformations
 from tf2_msgs.msg import TFMessage
@@ -26,6 +27,7 @@ class CurvePlotter(object):
 
 		self.gps_msr = np.empty(shape=(0, 5)) # t, lat, lat_cov, lon, lon_cov
 		self.heading_msr = np.empty(shape=(0, 3)) # t, yaw, yaw_cov
+		self.navrelposned = np.empty(shape=(0, 3)) # t, relPoseLength, accHeading
 
 		self.imu_3dm = np.empty(shape=(0, 5)) # t, ang_vel.z, lin_accel.x, lin_accel.y, lin_accel.z
 		self.t265_ang_vel = np.empty(shape=(0, 2)) # t, ang_vel.z
@@ -38,10 +40,11 @@ class CurvePlotter(object):
 
 		self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
 
-		#self.sub_gps = rospy.Subscriber('/gps/fix', NavSatFix, self.gps_callback)
+		self.sub_gps = rospy.Subscriber('/gps/fix', NavSatFix, self.gps_callback)
 		#self.sub_gps_odom = rospy.Subscriber('/odometry/gps', Odometry, self.gps_odom_callback)
 		#self.gps_odom_record = np.empty((0, 3)) # t, x, x_cov
 		self.sub_heading = rospy.Subscriber('/gps/navheading', Imu, self.heading_callback)
+		self.sub_navrelposned = rospy.Subscriber('/gps/navrelposned', NavRELPOSNED9, self.navrelposned_callback)
 
 		#self.sub_imu_3dm = rospy.Subscriber('/imu/refined', Imu, self.imu_callback)
 		#self.sub_t265_ang_vel = rospy.Subscriber('/rs_t265/gyro/sample', Imu, self.imu_callback)
@@ -98,7 +101,7 @@ class CurvePlotter(object):
 		axs[1, 1].set_xlabel('time')
 
 		plt.tight_layout()
-		plt.savefig(path)
+		#plt.savefig(path)
 		plt.show()
 
 
@@ -114,6 +117,27 @@ class CurvePlotter(object):
 
 		plt.tight_layout()
 		#plt.savefig(path)
+		plt.show()
+
+
+	def plot_heading_clue(self, path):
+		fig, axs = plt.subplots(4)
+
+		# plot heading measurements with covariance
+		axs[0].plot(self.heading_msr[:, 0], self.heading_msr[:, 1])
+		axs[0].set_ylabel('GPS heading')
+		axs[1].plot(self.heading_msr[:, 0], self.heading_msr[:, 2])
+		axs[1].set_ylabel('msr cov')
+
+		# plot navrelposned
+		axs[2].plot(self.navrelposned[:, 0], self.navrelposned[:, 1])
+		axs[2].set_ylabel('relPosLen')
+		axs[3].plot(self.navrelposned[:, 0], self.navrelposned[:, 2])
+		axs[3].set_ylabel('accHeading')
+		axs[3].set_xlabel('time')
+
+		plt.tight_layout()
+		# plt.savefig(path)
 		plt.show()
 
 
@@ -309,6 +333,9 @@ class CurvePlotter(object):
 
 
 	def heading_callback(self, msg_heading):
+		#if msg_heading.orientation_covariance[8] >= 1000:
+		#	return
+		
 		time_curr = msg_heading.header.stamp.to_sec()
 		if self.start_time == -1:
 			self.start_time = time_curr
@@ -317,12 +344,23 @@ class CurvePlotter(object):
 		q = msg_heading.orientation
 		_, _, yaw = transformations.euler_from_quaternion([q.x, q.y, q.z, q.w])
 		yaw = yaw % (2 * np.pi)
-		if self.heading_msr.shape[0] > 0:
-			diff = np.abs(yaw - self.heading_msr[-1, 1])
-			print(diff)
-			print('cov: ',  msg_heading.orientation_covariance[8])
+		#if self.heading_msr.shape[0] > 0:
+		#	diff = np.abs(yaw - self.heading_msr[-1, 1])
+		#	print(diff)
+		#	print('cov: ',  msg_heading.orientation_covariance[8])
 		new_record = np.array([[dt, yaw, msg_heading.orientation_covariance[8]]])
 		self.heading_msr = np.vstack((self.heading_msr, new_record))
+
+
+	def navrelposned_callback(self, msg_navrelposned):
+		time_curr = rospy.Time.now().to_sec()
+		if self.start_time == -1:
+			self.start_time = time_curr
+		dt = time_curr - self.start_time
+		rel_len = msg_navrelposned.relPosLength + 0.01 * msg_navrelposned.relPosHPLength
+		new_record = np.array([[dt, rel_len, msg_navrelposned.accHeading]])
+		self.navrelposned = np.vstack((self.navrelposned, new_record))
+
 
 	def imu_callback(self, msg_imu):
 		time_curr = rospy.Time.now().to_sec()
@@ -367,6 +405,7 @@ if __name__ == "__main__":
 	path_heading = '/home/charlierkj/asco/src/ugv_localization/figs/%s_heading_msr.png' % data
 	path_imu_continuous = '/home/charlierkj/asco/src/ugv_localization/figs/%s_imu_vs_t265.png' % data
 	path_cov_odom = '/home/charlierkj/asco/src/ugv_localization/figs/%s_cov_odom.png' % data
+	path_heading_clue = '/home/charlierkj/asco/src/ugv_localization/figs/%s_heading_clue_2.png' % data
 
 	if rospy.is_shutdown():
 		#curve_plotter.plot_curve_pose(path_pose)
@@ -375,4 +414,5 @@ if __name__ == "__main__":
 		#curve_plotter.plot_covariance_heading(path_heading)
 		#curve_plotter.plot_imu_continuous(path_imu_continuous, mode='separate', t_min=50)
 		#curve_plotter.plot_covariance_odom(path_cov_odom)
-		curve_plotter.save_results()
+		#curve_plotter.save_results()
+		curve_plotter.plot_heading_clue(path_heading_clue)

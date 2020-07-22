@@ -5,12 +5,12 @@ GPSOdom::GPSOdom(ros::NodeHandle& nh,
 				 std::string topic_gps, std::string topic_odom, 
 				 double lat, double lon, double yaw, 
 				 std::string frame_id, std::string child_frame_id,
-				 double cov_threshold) : 
+				 double cov_threshold, double cov_scale) : 
 	nh_(nh), 
 	topic_gps_(topic_gps), topic_odom_(topic_odom), 
 	lat_(lat), lon_(lon), yaw_(yaw),
 	frame_id_(frame_id), child_frame_id_(child_frame_id),
-	cov_threshold_(cov_threshold)
+	cov_threshold_(cov_threshold), cov_scale_(cov_scale)
 {
 	sub = nh_.subscribe(topic_gps_, 10, &GPSOdom::callback, this);
 	pub = nh_.advertise<nav_msgs::Odometry>(topic_odom_, 10);
@@ -77,9 +77,9 @@ void GPSOdom::callback(const sensor_msgs::NavSatFix& msg_gps)
 	msg_odom.pose.pose.orientation.z = 0;
 	msg_odom.pose.pose.orientation.w = 1;
 
-	msg_odom.pose.covariance[0] = msg_gps.position_covariance[4];
-	msg_odom.pose.covariance[7] = msg_gps.position_covariance[0];
-	msg_odom.pose.covariance[14] = msg_gps.position_covariance[8];
+	msg_odom.pose.covariance[0] = cov_scale_ * msg_gps.position_covariance[4];
+	msg_odom.pose.covariance[7] = cov_scale_ * msg_gps.position_covariance[0];
+	msg_odom.pose.covariance[14] = cov_scale_ * msg_gps.position_covariance[8];
 	
 	pub.publish(msg_odom);
 }
