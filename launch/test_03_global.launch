@@ -8,7 +8,7 @@
 	<!-- replay bag data -->
 	<param name="use_sim_time" value="true"/>
 
-	<node pkg="rosbag" type="play" name="rosbag_play" args="-s 120 $(find ugv_localization)/bag/$(arg data).bag --clock"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock"/>
 
 
 	<!-- combine imu topics and convert to convention -->
@@ -32,6 +32,10 @@
 		<param name="cov_threshold" type="double" value="1000"/>
 		<param name="cov_scale" type="double" value="1000"/>
 	</node>
+
+
+	<!-- re-model GPS heading -->
+	<node pkg="ugv_localization" type="gps_navheading_node" name="gps_navheading_node"/>
 
 
 	<!-- rescale GPS cov -->
@@ -58,10 +62,10 @@
 	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_gps" args="/rtk_ublox/fix gps" output="screen"/-->
 	
 
-	<node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen">
+	<!-- node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen">
 		<param name="mode" value="global"/>
 		<param name="data" value="$(arg data)"/>
-	</node>
+	</node -->
 	
 
 	<!-- publish /world/fix and visualize with rviz_satellite -->

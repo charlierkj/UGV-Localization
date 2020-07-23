@@ -16,8 +16,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   sensor_msgs
-  tf2
+  tf
   tf2_ros
+  ublox_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -112,7 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
    INCLUDE_DIRS include
    LIBRARIES ugv_localization
-   CATKIN_DEPENDS robot_localization roscpp rospy sensor_msgs tf2 tf2_ros
+   CATKIN_DEPENDS robot_localization roscpp rospy sensor_msgs tf tf2_ros ublox_msgs
 #  DEPENDS system_lib
 )
 
@@ -144,6 +145,7 @@ add_library(gps_odom src/gps_odom.cpp)
 # add_executable(${PROJECT_NAME}_node src/ugv_localization_node.cpp)
 add_executable(datum_tf_node src/datum_tf_node.cpp)
 add_executable(gps_odom_node src/gps_odom_node.cpp)
+add_executable(gps_navheading_node src/gps_navheading_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -162,6 +164,7 @@ add_executable(gps_odom_node src/gps_odom_node.cpp)
 target_link_libraries(datum_tf_node ${catkin_LIBRARIES})
 target_link_libraries(gps_odom ${catkin_LIBRARIES})
 target_link_libraries(gps_odom_node ${catkin_LIBRARIES} gps_odom)
+target_link_libraries(gps_navheading_node ${catkin_LIBRARIES})
 
 #############
 ## Install ##
