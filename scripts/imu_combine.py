@@ -55,9 +55,9 @@ class ImuCombine(object):
 
 
 	def convert_angular_vel(self, msg_in):
-		q_in = transformations.quaternion_from_euler(msg_in.x, msg_in.y, msg_in.z)
-		q_out = transformations.quaternion_multiply(self.rot_baselink2imu, q_in)
-		v_out = transformations.euler_from_quaternion(q_out)
+		v_in = np.array([msg_in.x, msg_in.y, msg_in.z]).reshape(3,1)
+		rotmat_baselink2imu = transformations.quaternion_matrix(self.rot_baselink2imu)[0:3, 0:3]
+		v_out = np.matmul(rotmat_baselink2imu, v_in).flatten()
 		msg_out = Vector3()
 		msg_out.x = v_out[0]
 		msg_out.y = v_out[1]
@@ -78,24 +78,34 @@ class ImuCombine(object):
 
 
 class ImuRefine(ImuCombine):
-	# refine single imu measurements from from 'imu_3dm' frame to 'base_link' frame. 
+	# refine single imu measurements from from 'imu_3dm' or 'rs_t265_gyro_optical_frame' frame to 'base_link' frame. 
 
-	def __init__(self, topic_in, topic_out):
+	def __init__(self, topic_in, topic_out, sensor='3dm'):
+	# sensro: '3dm' or 't265'
 		# configure subscriber and publisher
 		self.sub_imu = rospy.Subscriber(topic_in, Imu, self.callback)
 		self.pub_imu = rospy.Publisher(topic_out, Imu, queue_size=10)
 
+		self.sensor = sensor
+
 		# transformations
-		self.rot_baselink2imu = transformations.quaternion_from_euler(np.pi, 0, 0)
+		if self.sensor == '3dm':
+			self.rot_baselink2imu = transformations.quaternion_from_euler(np.pi, 0, 0, 'sxyz')
+		elif self.sensor == 't265':
+			self.rot_baselink2imu = transformations.quaternion_from_euler(np.pi/2, 0, np.pi/2, 'sxyz')
 
 
 	def callback(self, msg_in):
-		msg_out = msg_in
+		msg_out = Imu()
 
 		msg_out.header.frame_id = "base_link"
 		msg_out.header.stamp = rospy.Time.now()
 		msg_out.angular_velocity = self.convert_angular_vel(msg_in.angular_velocity)
-		msg_out.angular_velocity_covariance = msg_in.angular_velocity_covariance
+
+		if self.sensor == '3dm':
+			msg_out.angular_velocity_covariance = msg_in.angular_velocity_covariance
+		elif self.sensor == 't265':
+			msg_out.angular_velocity_covariance = (msg_in.angular_velocity_covariance[8], 0, 0, 0, msg_in.angular_velocity_covariance[0], 0, 0, 0, msg_in.angular_velocity_covariance[4])
 
 		msg_out.linear_acceleration.y = - msg_in.linear_acceleration.y
 		msg_out.linear_acceleration.z = - msg_in.linear_acceleration.z
@@ -123,10 +133,14 @@ if __name__ == "__main__":
 		imu_combine = ImuCombine(topic_in_1, topic_in_2, topic_out)
 
 	elif mode == 'refine':
-		topic_in = 'imu_3dm/imu'
+		sensor = rospy.get_param(node_name + '/sensor')
+		if sensor == '3dm':
+			topic_in = 'imu_3dm/imu'
+		elif sensor == 't265':
+			topic_in = 'rs_t265/gyro/sample'
 		topic_out = 'imu/refined'
 	
-		imu_refine = ImuRefine(topic_in, topic_out)
+		imu_refine = ImuRefine(topic_in, topic_out, sensor)
 
 	rospy.spin()
 
