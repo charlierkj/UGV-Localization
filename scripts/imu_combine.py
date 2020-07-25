@@ -105,6 +105,7 @@ class ImuRefine(ImuCombine):
 		if self.sensor == '3dm':
 			msg_out.angular_velocity_covariance = msg_in.angular_velocity_covariance
 		elif self.sensor == 't265':
+			msg_out.angular_velocity.z += 0.0011
 			msg_out.angular_velocity_covariance = (msg_in.angular_velocity_covariance[8], 0, 0, 0, msg_in.angular_velocity_covariance[0], 0, 0, 0, msg_in.angular_velocity_covariance[4])
 
 		msg_out.linear_acceleration.y = - msg_in.linear_acceleration.y

@@ -36,6 +36,11 @@
 	</node>
 
 
+	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /imu/combined" output="screen">
+		<param name="config_file" value="$(find ugv_localization)/config/global/ekf_odom_imu_gps.yaml"/>
+	</node>	
+
+
     <!-- publish required tf (transformation) -->
 	<node pkg="tf2_ros" type="static_transform_publisher" name="base_link2gps" args="0 0 0 0 0 0 base_link gps"/>
 

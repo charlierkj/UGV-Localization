@@ -47,7 +47,7 @@ imu0_config: [false, false, false,
               true, false, false]
 imu0_differential: false
 
-imu1: gps/navheading
+imu1: gps/navheading/new
 imu1_config: [false, false, false,
               false, false, true,
               false, false, false,

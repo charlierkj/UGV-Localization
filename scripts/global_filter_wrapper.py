@@ -16,7 +16,7 @@ from tf import transformations
 
 class GlobalFilterWrapper(object):
 
-	def __init__(self, topic_odom_wheel, topic_odom_gps, topic_imu, config_file):
+	def __init__(self, topic_odom_wheel, topic_odom_gps, topic_imu, config_file, filter_node_name, topic_out):
 		# configure subscriber and publisher
 		self.sub_odom_wheel = message_filters.Subscriber(topic_odom_wheel, Odometry)
 		self.sub_odom_gps = message_filters.Subscriber(topic_odom_gps, Odometry)
@@ -33,6 +33,12 @@ class GlobalFilterWrapper(object):
 
 		# config file
 		self.config_file = config_file
+
+		# topic name for output
+		self.topic_out = topic_out
+
+		# filter node name
+		self.filter_node_name = filter_node_name	
 
 
 	def callback(self, msg_wheel, msg_gps, msg_imu):
@@ -64,9 +70,9 @@ class GlobalFilterWrapper(object):
 
 
 	def run_filter(self):
-		cmd_param = "rosparam load %s ekf_odom_gps_imu" % self.config_file
-		cmd_set = "rosparam set /ekf_odom_gps_imu/initial_state '%s'" % self.init_state
-		cmd_run = "rosrun robot_localization ekf_localization_node __name:=ekf_odom_gps_imu"# odometry/filtered:=/odometry/final"
+		cmd_param = "rosparam load %s %s" % (self.config_file, self.filter_node_name)
+		cmd_set = "rosparam set /%s/initial_state '%s'" % (self.filter_node_name, self.init_state)
+		cmd_run = "rosrun robot_localization ekf_localization_node __name:=%s odometry/filtered:=%s" % (self.filter_node_name, self.topic_out)
 		cmd_list = [cmd_param, cmd_set, cmd_run]
 		print('initial state: ', self.init_state)
 		for cmd in cmd_list:
@@ -84,9 +90,15 @@ if __name__ == "__main__":
 	rospy.init_node('global_filter_wrapper', anonymous=True)
 
 	node_name = rospy.get_name()
+	filter_node_name = rospy.get_param(node_name + '/filter_node_name')
 	config_file = rospy.get_param(node_name + '/config_file')
 
-	global_filter_wrapper = GlobalFilterWrapper(topic_odom_wheel, topic_odom_gps, topic_imu, config_file)
+	try:
+		topic_out = rospy.get_param(node_name + '/topic_out')
+	except:
+		topic_out = 'odometry/filtered'
+
+	global_filter_wrapper = GlobalFilterWrapper(topic_odom_wheel, topic_odom_gps, topic_imu, config_file, filter_node_name, topic_out)
 	rospy.spin()
 		
 		

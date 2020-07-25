@@ -44,7 +44,14 @@ class GPSNavHeadingSubPub
     		// When heading is reported to be valid, use accuracy reported in 1e-5 deg units
     		if (m.flags & ublox_msgs::NavRELPOSNED9::FLAGS_REL_POS_HEAD_VALID)
     		{
-      			imu_.orientation_covariance[8] = pow(m.accHeading * 1e-5 / 180.0 * M_PI, 2);
+				double cov1, cov2, cov3;
+      			cov1 = pow(m.accHeading * 1e-5 / 180.0 * M_PI, 2);
+				cov2 = pow(m.accLength * 1e-4, 2);
+				cov3 = pow((static_cast<double>(m.relPosLength) + 0.01 * static_cast<double>(m.relPosHPLength) - 70) * 1e-2, 2);
+
+				double cov = std::max(std::max(cov1, cov2), cov3);
+				imu_.orientation_covariance[8] = 100 * cov;
+				//std::cout << cov1 << "        " << cov2 << "        " << cov3 << std::endl; 
     		}
     		pub_.publish(imu_);
 		}

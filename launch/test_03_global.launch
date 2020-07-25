@@ -8,17 +8,26 @@
 	<!-- replay bag data -->
 	<param name="use_sim_time" value="true"/>
 
-	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="-s 120 $(find ugv_localization)/bag/$(arg data).bag --clock"/>
 
 
 	<!-- combine imu topics and convert to convention -->
 	<node pkg="ugv_localization" type="imu_combine.py" name="imu_refine" output="screen">
 		<param name="mode" value="refine"/>
+		<param name="sensor" value="3dm"/>
 	</node>
+
+	<!-- node pkg="ugv_localization" type="imu_combine.py" name="imu_refine_t265" output="screen">
+		<param name="mode" value="refine"/>
+		<param name="sensor" value="t265"/>
+		<remap from="imu/refined" to="imu/refined/t265"/>
+	</node -->
 
 
 	<!-- get 2D baseline odometry using wheel encoder and imu -->
 	<node pkg="ugv_localization" type="wheel_imu_odom.py" name="wheel_imu_odom" args="/wheel_odometry /imu/refined /odometry/wheel_imu" output="screen"/>
+
+	<!-- node pkg="ugv_localization" type="wheel_imu_odom.py" name="wheel_imu_odom_t265" args="/wheel_odometry /imu/refined/t265 /odometry/wheel_imu/t265" output="screen"/ -->
 
 
 	<!-- convert GPS into map frame -->
@@ -30,12 +39,12 @@
 		<param name="frame_id" type="string" value="map"/>
 		<param name="child_frame_id" type="string" value="base_link"/>
 		<param name="cov_threshold" type="double" value="1000"/>
-		<param name="cov_scale" type="double" value="1000"/>
+		<param name="cov_scale" type="double" value="100"/>
 	</node>
 
 
 	<!-- re-model GPS heading -->
-	<node pkg="ugv_localization" type="gps_navheading_node" name="gps_navheading_node"/>
+	<node pkg="ugv_localization" type="gps_navheading_node" name="gps_navheading_node" output="screen"/>
 
 
 	<!-- rescale GPS cov -->
@@ -44,7 +53,21 @@
 
 	<!-- fusion by robot_localization package -->
  	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
+		<param name="filter_node_name" value="ekf_odom_gps_imu"/>
+		<param name="topic_out" value="odometry/filtered"/>
 		<param name="config_file" value="$(find ugv_localization)/config/test_03_global/ekf_odom_imu_gps.yaml"/>
+	</node>
+
+	<!-- node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper_t265" args="/odometry/wheel_imu/t265 /odometry/gps /gps/navheading" output="screen">
+		<param name="filter_node_name" value="ekf_odom_gps_imu_t265"/>
+		<param name="topic_out" value="odometry/filtered/t265"/>
+		<param name="config_file" value="$(find ugv_localization)/config/test_03_global/ekf_odom_imu_gps_t265.yaml"/>
+	</node -->
+
+	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper_cov" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
+		<param name="filter_node_name" value="ekf_odom_gps_imu_cov"/>
+		<param name="topic_out" value="odometry/filtered/t265"/>
+		<param name="config_file" value="$(find ugv_localization)/config/test_03_global/ekf_odom_imu_gps_cov.yaml"/>
 	</node>
 
 
