@@ -14,16 +14,32 @@ class GPSNavHeadingSubPub
 
 		std::string topic_out_;
 
+		double last_time_;
+
 	public:
 		GPSNavHeadingSubPub(ros::NodeHandle& nh, std::string topic_out) : nh_(nh), topic_out_(topic_out) {
 			sub_ = nh_.subscribe("gps/navrelposned", 10, &GPSNavHeadingSubPub::callbackNavRelPosNed, this);
 			pub_ = nh_.advertise<sensor_msgs::Imu>("gps/navheading/new", 10);
+
+			last_time_ = -1;
 		}
 
 		~GPSNavHeadingSubPub() {}
 
 		void callbackNavRelPosNed(const ublox_msgs::NavRELPOSNED9 &m)
 		{
+			double time_scale, curr_time;
+			curr_time = ros::Time::now().toSec();
+			if (last_time_ == -1)
+			{	time_scale = 1;	}
+			else
+			{
+	  			double dt;
+	 			dt = curr_time - last_time_;
+				time_scale = dt / 0.2;
+	 		}
+	 		last_time_ = curr_time;
+
 			sensor_msgs::Imu imu_;
     		imu_.header.stamp = ros::Time::now();
     		imu_.header.frame_id = "gps";
@@ -41,6 +57,7 @@ class GPSNavHeadingSubPub
     		imu_.orientation_covariance[0] = 1000.0;
     		imu_.orientation_covariance[4] = 1000.0;
     		imu_.orientation_covariance[8] = 1000.0;
+
     		// When heading is reported to be valid, use accuracy reported in 1e-5 deg units
     		if (m.flags & ublox_msgs::NavRELPOSNED9::FLAGS_REL_POS_HEAD_VALID)
     		{
@@ -50,7 +67,8 @@ class GPSNavHeadingSubPub
 				cov3 = pow((static_cast<double>(m.relPosLength) + 0.01 * static_cast<double>(m.relPosHPLength) - 70) * 1e-2, 2);
 
 				double cov = std::max(std::max(cov1, cov2), cov3);
-				imu_.orientation_covariance[8] = 100 * cov;
+				//imu_.orientation_covariance[8] = 100 * cov;
+				imu_.orientation_covariance[8] = 100 * time_scale * cov;
 				//std::cout << cov1 << "        " << cov2 << "        " << cov3 << std::endl; 
     		}
     		pub_.publish(imu_);

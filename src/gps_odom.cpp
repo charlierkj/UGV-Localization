@@ -26,6 +26,8 @@ GPSOdom::GPSOdom(ros::NodeHandle& nh,
 	q.setRPY(0, 0, yaw_);
 	tf_utm2map.setRotation(q); // yaw, pitch, roll
 	tf_map2utm = tf_utm2map.inverse();
+
+	last_time_ = -1;
 }
 
 GPSOdom::~GPSOdom(){}
@@ -36,6 +38,18 @@ void GPSOdom::callback(const sensor_msgs::NavSatFix& msg_gps)
 	if ((msg_gps.position_covariance[0] > cov_threshold_) 
     && (msg_gps.position_covariance[4] > cov_threshold_))
 	{	return; }
+
+	double time_scale, curr_time;
+	curr_time = msg_gps.header.stamp.toSec();
+	if (last_time_ == -1)
+	{	time_scale = 1;	}
+	else
+	{
+	  	double dt;
+	 	dt = curr_time - last_time_;
+		time_scale = dt / 0.2;
+	 }
+	 last_time_ = curr_time;
 
 	double lat = msg_gps.latitude;
 	double lon = msg_gps.longitude;
@@ -77,9 +91,12 @@ void GPSOdom::callback(const sensor_msgs::NavSatFix& msg_gps)
 	msg_odom.pose.pose.orientation.z = 0;
 	msg_odom.pose.pose.orientation.w = 1;
 
-	msg_odom.pose.covariance[0] = cov_scale_ * msg_gps.position_covariance[4];
-	msg_odom.pose.covariance[7] = cov_scale_ * msg_gps.position_covariance[0];
-	msg_odom.pose.covariance[14] = cov_scale_ * msg_gps.position_covariance[8];
+	msg_odom.pose.covariance[0] = time_scale * cov_scale_ * msg_gps.position_covariance[4];
+	msg_odom.pose.covariance[7] = time_scale * cov_scale_ * msg_gps.position_covariance[0];
+	msg_odom.pose.covariance[14] = time_scale * cov_scale_ * msg_gps.position_covariance[8];
+	// msg_odom.pose.covariance[0] = cov_scale_ * msg_gps.position_covariance[4];
+	// msg_odom.pose.covariance[7] = cov_scale_ * msg_gps.position_covariance[0];
+	// msg_odom.pose.covariance[14] = cov_scale_ * msg_gps.position_covariance[8];
 	
 	pub.publish(msg_odom);
 }

@@ -26,6 +26,8 @@ class GPSOdom
 
 		tf2::Transform tf_map2utm;
 
+		double last_time_;
+
 	public:
 		GPSOdom(ros::NodeHandle& nh, 
 				std::string topic_gps, std::string topic_odom, 
