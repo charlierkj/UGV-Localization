@@ -47,7 +47,7 @@ void GPSOdom::callback(const sensor_msgs::NavSatFix& msg_gps)
 	{
 	  	double dt;
 	 	dt = curr_time - last_time_;
-		time_scale = dt / 0.2;
+		time_scale = sqrt(dt / 0.2);
 	 }
 	 last_time_ = curr_time;
 

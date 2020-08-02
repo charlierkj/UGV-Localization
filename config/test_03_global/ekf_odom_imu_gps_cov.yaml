@@ -15,8 +15,8 @@ publish_tf: false
 
 # smooth_lagged_data: true
 
-#debug: true
-#debug_out_file: /home/charlierkj/asco/src/ugv_localization/debug/file.txt
+# debug: true
+# debug_out_file: /home/charlierkj/asco/src/ugv_localization/debug/file.txt
 
 # specify the frames
 world_frame: map
@@ -33,13 +33,13 @@ odom0_config: [false, false, false,
                false, false, false]
 odom0_differential: false
 
-odom1: odometry/gps
-odom1_config: [true, true, false,
-               false, false, false,
-               false, false, false,
-               false, false, false,
-               false, false, false]
-odom1_differential: false
+#odom1: odometry/gps
+#odom1_config: [true, true, false,
+#               false, false, false,
+#               false, false, false,
+#               false, false, false,
+#               false, false, false]
+#odom1_differential: false
 #odom1_pose_rejection_threshold: 2
 
 # configure imu inputs
@@ -51,13 +51,13 @@ imu0_config: [false, false, false,
               true, false, false]
 imu0_differential: false
 
-imu1: gps/navheading/new
-imu1_config: [false, false, false,
-              false, false, true,
-              false, false, false,
-              false, false, false,
-              false, false, false]
-imu1_differential: false
+#imu1: gps/navheading/new
+#imu1_config: [false, false, false,
+#              false, false, true,
+#              false, false, false,
+#              false, false, false,
+#              false, false, false]
+#imu1_differential: false
 #imu1_pose_rejection_threshold: 1
 
 # zero initial state, will be reset inside the code

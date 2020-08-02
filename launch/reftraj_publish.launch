@@ -1,0 +1,6 @@
+<?xml version='1.0'?>
+<launch>
+    <arg name="params_postfix" default="circle8" doc="circle6, circle8, rectcirc8" />
+    <!-- Send the reference trajectory message to every new subscriber.-->
+    <node pkg="rostopic" type="rostopic" name="reftraj_pub" args="pub /reftrajaxydt rampage_msgs/RefTrajAxydt --file=$(find ugv_localization)/traj/reftraj_axydt_$(arg params_postfix).yaml" />
+</launch>

@@ -8,7 +8,7 @@
 	<!-- replay bag data -->
 	<param name="use_sim_time" value="true"/>
 
-	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock" output="screen"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="-s 220 $(find ugv_localization)/bag/$(arg data).bag --clock" output="screen"/>
 
 
 	<!-- combine imu topics and convert to convention -->
@@ -95,10 +95,22 @@
 	<!-- publish /world/fix and visualize with rviz_satellite -->
 	<node pkg="ugv_localization" type="world_frame_gps_publisher.py" name="world_frame_gps_publisher"/>
 
-	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/>	
+	<!-- node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/ -->
 
 
-	<!-- visualize in rviz -->
-    <!-- node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/global.rviz"/ -->
+	<!-- visualize map with mapviz -->
+	<node pkg="swri_transform_util" type="initialize_origin.py" name="initialize_origin" >
+		<param name="local_xy_frame" value="map"/>
+    	<param name="local_xy_origin" value="map"/>
+    	<rosparam param="local_xy_origins">[{ name: map, latitude: 39.326465, longitude: -76.621554, altitude: 0, heading: 0.0}]</rosparam>
+  	</node>
+
+	<node pkg="mapviz" type="mapviz" name="mapviz">
+		<param name="config" value="$(find ugv_localization)/config/mapviz.mvc"/>
+	</node>
+
+
+	<!-- click waypoints and save to .npy file -->
+	<node pkg="ugv_localization" type="click_waypoints.py" name="click_waypoints"/>
 
 </launch>
