@@ -38,7 +38,7 @@ if __name__ == "__main__":
 	waypoints_saver = WaypointsSaver(topic)
 	rospy.spin()
 
-	if rospy.is_shutdown():
-		waypoints_saver.save_npy(npy_path)
+	# if rospy.is_shutdown():
+	#	waypoints_saver.save_npy(npy_path)
 	
 

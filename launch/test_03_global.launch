@@ -8,7 +8,7 @@
 	<!-- replay bag data -->
 	<param name="use_sim_time" value="true"/>
 
-	<node pkg="rosbag" type="play" name="rosbag_play" args="-s 220 $(find ugv_localization)/bag/$(arg data).bag --clock" output="screen"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="-s 220 $(find ugv_localization)/bag/$(arg data).bag --clock"/>
 
 
 	<!-- combine imu topics and convert to convention -->
@@ -112,5 +112,9 @@
 
 	<!-- click waypoints and save to .npy file -->
 	<node pkg="ugv_localization" type="click_waypoints.py" name="click_waypoints"/>
+
+
+	<!-- generate trajectory from .npy file -->
+	<node pkg="ugv_localization" type="gen_traj.py" name="gen_traj" output="screen"/>
 
 </launch>
