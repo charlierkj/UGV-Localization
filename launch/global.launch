@@ -8,10 +8,10 @@
 	<!-- replay bag data -->
 	<param name="use_sim_time" value="true"/>
 
-	<node pkg="rosbag" type="play" name="rosbag_play" args="-s 220 $(find ugv_localization)/bag/$(arg data).bag --clock"/>
+	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock"/>
 
 
-	<!-- combine imu topics and convert to convention -->
+	<!-- refine imu message into conventional frame -->
 	<node pkg="ugv_localization" type="imu_combine.py" name="imu_refine" output="screen">
 		<param name="mode" value="refine"/>
 		<!-- param name="sensor" value="3dm"/ -->
@@ -53,23 +53,17 @@
 
 
 	<!-- fusion by robot_localization package -->
- 	<!-- node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
+ 	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
 		<param name="filter_node_name" value="ekf_odom_gps_imu"/>
 		<param name="topic_out" value="odometry/filtered"/>
-		<param name="config_file" value="$(find ugv_localization)/config/test_03_global/ekf_odom_imu_gps.yaml"/>
-	</node -->
+		<param name="config_file" value="$(find ugv_localization)/config/global/ekf_odom_imu_gps.yaml"/>
+	</node>
 
 	<!-- node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper_t265" args="/odometry/wheel_imu/t265 /odometry/gps /gps/navheading" output="screen">
 		<param name="filter_node_name" value="ekf_odom_gps_imu_t265"/>
 		<param name="topic_out" value="odometry/filtered/t265"/>
-		<param name="config_file" value="$(find ugv_localization)/config/test_03_global/ekf_odom_imu_gps_t265.yaml"/>
+		<param name="config_file" value="$(find ugv_localization)/config/global/ekf_odom_imu_gps_t265.yaml"/>
 	</node -->
-
-	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper_cov" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
-		<param name="filter_node_name" value="ekf_odom_gps_imu_cov"/>
-		<param name="topic_out" value="odometry/filtered/t265"/>
-		<param name="config_file" value="$(find ugv_localization)/config/test_03_global/ekf_odom_imu_gps_cov.yaml"/>
-	</node>
 
 
     <!-- publish required tf (transformation) -->
@@ -93,7 +87,8 @@
 	
 
 	<!-- publish /world/fix and visualize with rviz_satellite -->
-	<node pkg="ugv_localization" type="world_frame_gps_publisher.py" name="world_frame_gps_publisher"/>
+	<!-- node pkg="ugv_localization" type="world_frame_gps_publisher.py" name="world_frame_gps_publisher"/ -->
+	<include file="$(find ugv_localization)/launch/world_frame_gps_publisher.launch"/>
 
 	<!-- node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/ -->
 

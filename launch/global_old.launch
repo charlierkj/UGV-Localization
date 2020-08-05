@@ -32,13 +32,8 @@
 
 	<!-- fusion by robot_localization package -->
 	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /imu/combined" output="screen">
-		<param name="config_file" value="$(find ugv_localization)/config/global/ekf_odom_imu_gps.yaml"/>
+		<param name="config_file" value="$(find ugv_localization)/config/global_old/ekf_odom_imu_gps.yaml"/>
 	</node>
-
-
-	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /imu/combined" output="screen">
-		<param name="config_file" value="$(find ugv_localization)/config/global/ekf_odom_imu_gps.yaml"/>
-	</node>	
 
 
     <!-- publish required tf (transformation) -->

@@ -9,9 +9,9 @@ show_status_bar: true
 show_capture_tools: true
 window_width: 1301
 window_height: 744
-view_scale: 0.1558989
-offset_x: -0.22295
-offset_y: -92.99763
+view_scale: 0.2075014
+offset_x: -18.0587
+offset_y: -16.69513
 use_latest_transforms: true
 background: "#a0a0a4"
 displays:
@@ -27,22 +27,6 @@ displays:
           type: wmts
       bing_api_key: ""
       source: google_map
-  - type: mapviz_plugins/odometry
-    name: new display
-    config:
-      visible: true
-      collapsed: true
-      topic: /odometry/filtered/t265
-      color: "#ff0000"
-      draw_style: lines
-      position_tolerance: 0
-      buffer_size: 0
-      show_laps: false
-      show_covariance: false
-      show_all_covariances: false
-      static_arrow_sizes: false
-      arrow_size: 25
-      show_timestamps: 0
   - type: mapviz_plugins/navsat
     name: new display
     config:
@@ -53,6 +37,22 @@ displays:
       draw_style: lines
       position_tolerance: 0
       buffer_size: 0
+  - type: mapviz_plugins/odometry
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      topic: /odometry/filtered
+      color: "#ff0000"
+      draw_style: lines
+      position_tolerance: 0
+      buffer_size: 0
+      show_laps: false
+      show_covariance: false
+      show_all_covariances: false
+      static_arrow_sizes: false
+      arrow_size: 25
+      show_timestamps: 0
   - type: mapviz_plugins/point_click_publisher
     name: new display
     config:
