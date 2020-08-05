@@ -110,11 +110,7 @@
 	</node>
 
 
-	<!-- click waypoints and save to .npy file -->
-	<node pkg="ugv_localization" type="click_waypoints.py" name="click_waypoints"/>
-
-
-	<!-- generate trajectory from .npy file -->
-	<node pkg="ugv_localization" type="gen_traj.py" name="gen_traj" output="screen"/>
+	<!-- click waypoints and generate trajectory -->
+	<include file="$(find ugv_localization)/launch/gen_traj.launch"/>
 
 </launch>

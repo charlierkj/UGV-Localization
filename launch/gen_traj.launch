@@ -1,0 +1,12 @@
+<?xml version='1.0'?>
+<launch>
+
+	<arg name="topic_in" default="mapviz/clicked_point"/>
+	<arg name="topic_out" default="reftraj"/>
+
+	<node pkg="ugv_localization" type="gen_traj.py" name="gen_traj" output="screen">
+		<param name="topic_in" value="$(arg topic_in)"/>
+		<param name="topic_out" value="$(arg topic_out)"/>
+	</node>
+
+</launch>

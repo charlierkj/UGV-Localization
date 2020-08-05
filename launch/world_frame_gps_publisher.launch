@@ -1,6 +1,10 @@
 <?xml version='1.0'?>
 <launch>
-  <node name="world_frame_gps_publisher" pkg="rampage_vehicle" type="world_frame_gps_publisher.py" output="screen" launch-prefix="">
-    <param name="strfile_params" type="str" value="$(find rampage_vehicle)/params/gps_imu_encoder_to_odometry.yaml"/> 
-  </node>
+
+	<!-- node name="world_frame_gps_publisher" pkg="rampage_vehicle" type="world_frame_gps_publisher.py" output="screen" launch-prefix="">
+		<param name="strfile_params" type="str" value="$(find rampage_vehicle)/params/gps_imu_encoder_to_odometry.yaml"/> 
+	</node -->
+
+	<node pkg="ugv_localization" type="world_frame_gps_publisher.py" name="world_frame_gps_publisher"/>
+
 </launch>
