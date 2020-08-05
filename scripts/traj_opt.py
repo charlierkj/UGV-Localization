@@ -133,7 +133,8 @@ class TrajOptimizer(object):
 			self.A[2 * self.num_segments + seg_i, (seg_i - 1) * 8 : seg_i * 8] = - np.array([7*T_last**6, 6*T_last**5, 5*T_last**4, 4*T_last**3, 3*T_last**2, 2*T_last, 1, 0])
 
 		# end derivative zero constraint
-		self.A[3 * self.num_segments, (self.num_segments - 1) * 8 + 6] = 1
+		T = self.durations[-1]
+		self.A[3 * self.num_segments, (self.num_segments - 1) * 8 : self.num_segments * 8] = np.array([7*T**6, 6*T**5, 5*T**4, 4*T**3, 3*T**2, 2*T, 1, 0])
 
 		print("constraint mapping matrix A has been set up, size of which is ", self.A.shape)
 
@@ -258,6 +259,7 @@ class TrajOptimizer(object):
 		ax.axis('equal')
 		ax.set_xlabel('x [m]')
 		ax.set_ylabel('y [m]')
+		ax.grid()
 
 		# plot heading
 		ax = plt.subplot(gs[3, 0])
@@ -287,7 +289,7 @@ class TrajOptimizer(object):
 		time_offset = 0
 		for t in np.arange(0, self.time, dt):
 			t_seg = t - time_offset
-			if t_seg >= self.durations[seg_i]:
+			if t_seg > self.durations[seg_i]:
 				seg_i += 1
 				time_offset += self.durations[seg_i]
 			poly_x = self.polys_x[seg_i * 8 : (seg_i + 1) * 8]
