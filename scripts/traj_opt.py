@@ -290,8 +290,8 @@ class TrajOptimizer(object):
 		for t in np.arange(0, self.time, dt):
 			t_seg = t - time_offset
 			if t_seg > self.durations[seg_i]:
-				seg_i += 1
 				time_offset += self.durations[seg_i]
+				seg_i += 1
 			poly_x = self.polys_x[seg_i * 8 : (seg_i + 1) * 8]
 			poly_y = self.polys_y[seg_i * 8 : (seg_i + 1) * 8]
 			x = np.polyval(poly_x, t_seg)
