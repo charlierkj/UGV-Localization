@@ -45,8 +45,8 @@ class TrajOptimizer(object):
 
 
 	def estimate_segment_times(self):
-		v_max = 5.0 # hardcoded
-		a_max = 5.0
+		v_max = 2.0 # hardcoded
+		a_max = 2.0
 		for seg_i in range(self.num_segments):
 			start = self.waypoints[seg_i, :]
 			end = self.waypoints[seg_i + 1, :]
@@ -305,7 +305,11 @@ class TrajOptimizer(object):
 			axyt.append(x)
 			axyt.append(y)
 			axyt.append(t)
-		msg.axyt = axyt
+		# row major format
+		axyt_np = np.array(axyt).reshape(-1, 4)
+		axyt_np = axyt_np.T
+		# print(axyt_np.shape)
+		msg.axyt = list(axyt_np.flatten())
 		msg.modifier = [0, 0, 0, 1]
 		msg.looping = self.loop
 		self.pub.publish(msg)
