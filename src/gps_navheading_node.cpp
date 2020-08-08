@@ -15,11 +15,12 @@ class GPSNavHeadingSubPub
 		std::string topic_out_;
 
 		double last_time_;
+		double cov_thresh_;
 
 	public:
-		GPSNavHeadingSubPub(ros::NodeHandle& nh, std::string topic_out) : nh_(nh), topic_out_(topic_out) {
+		GPSNavHeadingSubPub(ros::NodeHandle& nh, std::string topic_out, double cov_thresh) : nh_(nh), topic_out_(topic_out), cov_thresh_(cov_thresh) {
 			sub_ = nh_.subscribe("gps/navrelposned", 10, &GPSNavHeadingSubPub::callbackNavRelPosNed, this);
-			pub_ = nh_.advertise<sensor_msgs::Imu>("gps/navheading/new", 10);
+			pub_ = nh_.advertise<sensor_msgs::Imu>(topic_out_, 10);
 
 			last_time_ = -1;
 		}
@@ -38,7 +39,6 @@ class GPSNavHeadingSubPub
 	 			dt = curr_time - last_time_;
 				time_scale = sqrt(dt / 0.2);
 	 		}
-	 		last_time_ = curr_time;
 
 			sensor_msgs::Imu imu_;
     		imu_.header.stamp = ros::Time::now();
@@ -71,7 +71,12 @@ class GPSNavHeadingSubPub
 				imu_.orientation_covariance[8] = 100 * time_scale * cov;
 				//std::cout << cov1 << "        " << cov2 << "        " << cov3 << std::endl; 
     		}
-    		pub_.publish(imu_);
+
+			if (imu_.orientation_covariance[8] < cov_thresh_)
+			{
+    			pub_.publish(imu_);
+				last_time_ = curr_time;
+			}
 		}
 };
 
@@ -81,10 +86,15 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "gps_navheading_node");
 	ros::NodeHandle nh;
 
-	std::string topic_out;
-	topic_out = "gps/navheading/new";
+	std::string node_name = ros::this_node::getName();
 
-	GPSNavHeadingSubPub gps_navheading_subpub(nh, topic_out);
+	std::string topic_out;
+	double cov_thresh;
+
+    nh.getParam(node_name+"/topic_out", topic_out);
+	nh.getParam(node_name+"/cov_thresh", cov_thresh);
+
+	GPSNavHeadingSubPub gps_navheading_subpub(nh, topic_out, cov_thresh);
 
 	ros::spin();
 	return 0;

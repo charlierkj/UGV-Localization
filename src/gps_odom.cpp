@@ -2,11 +2,13 @@
 #include "ugv_localization/gps_odom.hpp"
 
 GPSOdom::GPSOdom(ros::NodeHandle& nh, 
+				 std::string coord_sys,
 				 std::string topic_gps, std::string topic_odom, 
 				 double lat, double lon, double yaw, 
 				 std::string frame_id, std::string child_frame_id,
 				 double cov_threshold, double cov_scale) : 
-	nh_(nh), 
+	nh_(nh),
+	coord_sys_(coord_sys),
 	topic_gps_(topic_gps), topic_odom_(topic_odom), 
 	lat_(lat), lon_(lon), yaw_(yaw),
 	frame_id_(frame_id), child_frame_id_(child_frame_id),
@@ -53,28 +55,39 @@ void GPSOdom::callback(const sensor_msgs::NavSatFix& msg_gps)
 
 	double lat = msg_gps.latitude;
 	double lon = msg_gps.longitude;
+	double map_x, map_y; // coordinates in map frame
 
-	double utm_x, utm_y;
-	std::string utm_zone_tmp;
-	RobotLocalization::NavsatConversions::LLtoUTM(lat, lon, utm_y, utm_x, utm_zone_tmp);
+	if (coord_sys_ == "utm")
+	{
+		double utm_x, utm_y;
+		std::string utm_zone_tmp;
+		RobotLocalization::NavsatConversions::LLtoUTM(lat, lon, utm_y, utm_x, utm_zone_tmp);
 	
-	// utm to base_link
-	tf2::Transform tf_utm2base_link;
-	tf_utm2base_link.setOrigin(tf2::Vector3(utm_x, utm_y, 0));
-	tf2::Quaternion q;
-	q.setRPY(0, 0, 0);
-	tf_utm2base_link.setRotation(q);
+		// utm to base_link
+		tf2::Transform tf_utm2base_link;
+		tf_utm2base_link.setOrigin(tf2::Vector3(utm_x, utm_y, 0));
+		tf2::Quaternion q;
+		q.setRPY(0, 0, 0);
+		tf_utm2base_link.setRotation(q);
 	
-	// map to base_link
-	tf2::Transform tf_map2base_link;
-	tf_map2base_link = tf_map2utm * tf_utm2base_link;
+		// map to base_link
+		tf2::Transform tf_map2base_link;
+		tf_map2base_link = tf_map2utm * tf_utm2base_link;
 	
-	// coordinates in map frame
-	double map_x, map_y;
-	tf2::Vector3 trans;
-	trans = tf_map2base_link.getOrigin();
-	map_x = trans.getX();
-	map_y = trans.getY();
+		// coordinates in map frame
+		tf2::Vector3 trans;
+		trans = tf_map2base_link.getOrigin();
+		map_x = trans.getX();
+		map_y = trans.getY();
+	}
+	else if (coord_sys_ == "wgs84")
+	{
+		swri_transform_util::LocalXyFromWgs84(lat, lon, lat_, lon_, map_x, map_y);
+	}
+	else
+	{
+		ROS_ERROR("Invalid global coordinate system!");
+	}
 
 	// publish
 	nav_msgs::Odometry msg_odom;

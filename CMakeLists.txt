@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   sensor_msgs
+  swri_transform_util
   tf
   tf2_ros
   ublox_msgs
@@ -113,7 +114,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
    INCLUDE_DIRS include
    LIBRARIES ugv_localization
-   CATKIN_DEPENDS robot_localization roscpp rospy sensor_msgs tf tf2_ros ublox_msgs
+   CATKIN_DEPENDS robot_localization roscpp rospy sensor_msgs swri_transform_util tf tf2_ros ublox_msgs
 #  DEPENDS system_lib
 )
 
