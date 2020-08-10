@@ -30,13 +30,18 @@ catkin build ugv_localization
 
 ## Run the nodes
 
-1. Set up the mapviz server for visualizing google map
-1.1. Create the MapProxy configuration folder.
-```mkdir ~/mapproxy```
-1.2. Start MapProxy server
-```sudo docker run -p 8080:8080 -d -t -v ~/mapproxy:/mapproxy danielsnider/mapproxy```
+### 1. Set up the mapviz server for visualizing google map
 
-2. Start localization under your workspace
+1.1. Create the MapProxy configuration folder.
+```
+mkdir ~/mapproxy
+```
+1.2. Start MapProxy server
+```
+sudo docker run -p 8080:8080 -d -t -v ~/mapproxy:/mapproxy danielsnider/mapproxy
+```
+
+### 2. Start localization under your workspace
 ```
 source devel/setup.bash
 roslaunch ugv_localization global.launch data:={real/bagfile} 
