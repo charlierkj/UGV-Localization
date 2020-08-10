@@ -57,6 +57,28 @@ class TrajOptimizer(object):
 		print(self.durations)
 
 
+	def refine_segment_times(self):
+		v_appr = 2.0 # hardcoded
+		a_appr = 2.0
+		for seg_i in range(self.num_segments):
+			dist = 0
+			for t in np.arange(0, self.durations[seg_i], 0.01):
+				poly_x = self.polys_x[seg_i * 8 : (seg_i + 1) * 8]
+				poly_y = self.polys_y[seg_i * 8 : (seg_i + 1) * 8]
+				poly_velx = np.polyder(poly_x, 1)
+				poly_vely = np.polyder(poly_y, 1)
+				vel_x = np.polyval(poly_velx, t)
+				vel_y = np.polyval(poly_vely, t)
+				vel = np.linalg.norm([vel_x, vel_y])
+				dist += vel * 0.01
+			if (seg_i == 0) or (seg_i == (self.num_segments - 1)):
+				self.durations[seg_i] = (dist + v_appr ** 2 / (2 * a_appr)) / v_appr
+			else:
+				self.durations[seg_i] = dist / v_appr
+		self.time = np.sum(self.durations)
+		print(self.durations)
+
+
 	def objective_func(self, polys):
 		# minimize integral of snap squared
 		cost = 0
@@ -206,13 +228,18 @@ class TrajOptimizer(object):
 		return polys
 
 
-	def generate_traj(self, solver='cvxopt'):
+	def generate_traj(self, solver='cvxopt', iterations=1):
+		# iterations: num of iters for refinement
 		if solver == 'scipy':
 			self.polys_x = self.solve_polys_scipy(0)
 			self.polys_y = self.solve_polys_scipy(1)
 		elif solver == 'cvxopt':
 			self.polys_x = self.solve_polys_cvxopt(0)
 			self.polys_y = self.solve_polys_cvxopt(1)
+			for i in range(iterations):
+				self.refine_segment_times()
+				self.polys_x = self.solve_polys_cvxopt(0)
+				self.polys_y = self.solve_polys_cvxopt(1)
 		#print(self.polys_x)
 		#print(self.polys_y)
 
@@ -226,6 +253,8 @@ class TrajOptimizer(object):
 		ys = []
 		headings = []
 		vels = []
+		# vels_f = [] # forward velocity
+		# vels_l = [] # lateral velocity
 		accels = []
 		for seg_i in range(self.num_segments):
 			for t in np.arange(0, self.durations[seg_i], dt):
@@ -243,6 +272,8 @@ class TrajOptimizer(object):
 				accel_y = np.polyval(poly_accely, t)
 				heading = np.arctan2(vel_y, vel_x)
 				vel = np.linalg.norm([vel_x, vel_y])
+				# vel_f = vel_x * np.cos(heading) + vel_y * np.sin(heading)
+				# vel_l = - vel_x * np.sin(heading) + vel_y * np.cos(heading)
 				accel = np.linalg.norm([accel_x, accel_y])
 				#if t == 0:
 				#	print(x, y)
@@ -250,11 +281,14 @@ class TrajOptimizer(object):
 				ys.append(y)
 				headings.append(heading)
 				vels.append(vel)
+				# vels_f.append(vel_f)
+				# vels_l.append(vel_l)
 				accels.append(accel)
 				num_samples += 1
 
 		# plot traj
 		ax = plt.subplot(gs[0:3, 0])
+		# ax.scatter(self.waypoints[:, 0], self.waypoints[:, 1], color="red")
 		ax.plot(xs, ys)
 		ax.axis('equal')
 		ax.set_xlabel('x [m]')
@@ -269,7 +303,10 @@ class TrajOptimizer(object):
 
 		# plot velocity
 		ax = plt.subplot(gs[4, 0])
-		ax.plot(np.arange(num_samples), vels)
+		ax.plot(np.arange(num_samples), vels, color="blue", label="norm")
+		# ax.plot(np.arange(num_samples), vels_f, color="red", label="forward")
+		# ax.plot(np.arange(num_samples), vels_l, color="green", label="lateral")
+		# ax.legend()
 		ax.set_xlabel('time')
 		ax.set_ylabel('vel [m/s]')
 

@@ -6,9 +6,13 @@
 
 
 	<!-- replay bag data -->
-	<param name="use_sim_time" value="true"/>
+	<group if="$(eval arg('data')!='real')">
 
-	<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock" output="screen"/>
+		<param name="use_sim_time" value="true"/>
+
+		<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock"/>
+
+	</group>
 
 
 	<!-- refine imu message into conventional frame -->
@@ -94,7 +98,13 @@
 	<!-- node pkg="ugv_localization" type="world_frame_gps_publisher.py" name="world_frame_gps_publisher"/ -->
 	<include file="$(find ugv_localization)/launch/world_frame_gps_publisher.launch"/>
 
-	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/>
+	<!-- node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/ -->
+
+
+	<!-- add lidar map -->
+	<!-- include file="$(find ugv_localization)/launch/rampage_map_n_static_tf.launch">
+		<arg name="lidarmap" value="latrobe"/>
+	</include -->
 
 
 	<!-- visualize map with mapviz -->

@@ -33,20 +33,22 @@ class CurvePlotter(object):
 		self.t265_ang_vel = np.empty(shape=(0, 2)) # t, ang_vel.z
 		self.t265_lin_accel = np.empty(shape=(0, 4)) # t, lin_accel.x, lin_accel.y, lin_accel.z
 		
-		self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
+		#self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
 
 		if self.mode == 'local':
 			self.sub_tf = rospy.Subscriber('/tf_static', TFMessage, self.tf_callback)
 
 		self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
 
+		#self.sub_odom = rospy.Subscriber('/odometry/wheel_imu', Odometry, self.odom_callback)
+
 		self.sub_gps = rospy.Subscriber('/gps/fix', NavSatFix, self.gps_callback)
 		#self.sub_gps_odom = rospy.Subscriber('/odometry/gps', Odometry, self.gps_odom_callback)
 		#self.gps_odom_record = np.empty((0, 3)) # t, x, x_cov
-		self.sub_heading = rospy.Subscriber('/gps/navheading', Imu, self.heading_callback)
+		self.sub_heading = rospy.Subscriber('/gps/navheading/new', Imu, self.heading_callback)
 		self.sub_navrelposned = rospy.Subscriber('/gps/navrelposned', NavRELPOSNED9, self.navrelposned_callback)
 
-		#self.sub_imu_3dm = rospy.Subscriber('/imu/refined', Imu, self.imu_callback)
+		self.sub_imu_3dm = rospy.Subscriber('/imu/refined', Imu, self.imu_callback)
 		#self.sub_t265_ang_vel = rospy.Subscriber('/rs_t265/gyro/sample', Imu, self.imu_callback)
 		#self.sub_t265_lin_accel = rospy.Subscriber('/rs_t265/accel/sample', Imu, self.imu_callback)
 
@@ -250,6 +252,7 @@ class CurvePlotter(object):
 		time_curr = msg_odom.header.stamp.to_sec()
 		if self.start_time == -1:
 			self.start_time = time_curr
+		print(rospy.Time.now().to_sec() - time_curr)
 		# print 'current timestamp: %f' % time_curr
 		dt = time_curr - self.start_time
 		p = msg_odom.pose.pose.position # position
@@ -308,6 +311,7 @@ class CurvePlotter(object):
 
 	def gps_callback(self, msg_gps):
 		time_curr = msg_gps.header.stamp.to_sec()
+		#print(rospy.Time.now().to_sec() - time_curr)
 		if self.start_time == -1:
 			self.start_time = time_curr
 		dt = time_curr - self.start_time
@@ -321,6 +325,7 @@ class CurvePlotter(object):
 
 	def gps_odom_callback(self, msg_gps):
 		time_curr = msg_gps.header.stamp.to_sec()
+		#print(rospy.Time.now().to_sec() - time_curr)
 		if self.start_time == -1:
 			self.start_time = time_curr
 		dt = time_curr - self.start_time
@@ -337,6 +342,7 @@ class CurvePlotter(object):
 		#	return
 		
 		time_curr = msg_heading.header.stamp.to_sec()
+		# print(rospy.Time.now().to_sec() - time_curr)
 		if self.start_time == -1:
 			self.start_time = time_curr
 		dt = time_curr - self.start_time
@@ -364,6 +370,7 @@ class CurvePlotter(object):
 
 	def imu_callback(self, msg_imu):
 		time_curr = rospy.Time.now().to_sec()
+		# print(rospy.Time.now().to_sec() - time_curr)
 		if self.start_time == -1:
 			self.start_time = time_curr
 		dt = time_curr - self.start_time
@@ -407,7 +414,7 @@ if __name__ == "__main__":
 	path_cov_odom = '/home/charlierkj/asco/src/ugv_localization/figs/%s_cov_odom.png' % data
 	path_heading_clue = '/home/charlierkj/asco/src/ugv_localization/figs/%s_heading_clue_2.png' % data
 
-	if rospy.is_shutdown():
+	#if rospy.is_shutdown():
 		#curve_plotter.plot_curve_pose(path_pose)
 		#curve_plotter.plot_curve_slipangle(path_slipangle)
 		#curve_plotter.plot_covariance_gps(path_gps)
@@ -415,4 +422,4 @@ if __name__ == "__main__":
 		#curve_plotter.plot_imu_continuous(path_imu_continuous, mode='separate', t_min=50)
 		#curve_plotter.plot_covariance_odom(path_cov_odom)
 		#curve_plotter.save_results()
-		curve_plotter.plot_heading_clue(path_heading_clue)
+		#curve_plotter.plot_heading_clue(path_heading_clue)

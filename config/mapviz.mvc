@@ -10,8 +10,8 @@ show_capture_tools: true
 window_width: 1301
 window_height: 744
 view_scale: 0.2075014
-offset_x: -18.0587
-offset_y: -16.69513
+offset_x: -14.89815
+offset_y: -16.4275
 use_latest_transforms: true
 background: "#a0a0a4"
 displays:
@@ -30,7 +30,7 @@ displays:
   - type: mapviz_plugins/navsat
     name: new display
     config:
-      visible: true
+      visible: false
       collapsed: true
       topic: /gps/fix
       color: "#ffff00"
@@ -42,13 +42,29 @@ displays:
     config:
       visible: true
       collapsed: true
+      topic: /odometry/gps
+      color: "#00ff00"
+      draw_style: lines
+      position_tolerance: 0
+      buffer_size: 0
+      show_laps: false
+      show_covariance: true
+      show_all_covariances: false
+      static_arrow_sizes: false
+      arrow_size: 25
+      show_timestamps: 0
+  - type: mapviz_plugins/odometry
+    name: new display
+    config:
+      visible: true
+      collapsed: true
       topic: /odometry/filtered
       color: "#ff0000"
       draw_style: lines
       position_tolerance: 0
       buffer_size: 0
       show_laps: false
-      show_covariance: false
+      show_covariance: true
       show_all_covariances: false
       static_arrow_sizes: false
       arrow_size: 25

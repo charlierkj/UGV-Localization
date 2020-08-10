@@ -35,7 +35,7 @@ class WaypointsSaver(object):
 		self.last_waypoint = point
 
 
-	def save_npy(self, path):
+	def save_wps(self, path):
 		np.save(path, self.waypoints)
 
 
@@ -45,10 +45,11 @@ class WaypointsSaver(object):
 
 class TrajGenerator(WaypointsSaver):
 
-	def __init__(self, topic_in, topic_out, max_num=30):
+	def __init__(self, topic_in, topic_out, max_num=30, save_npy=False):
 		super(TrajGenerator, self).__init__(topic_in, max_num)
 
 		self.traj_optimizer = TrajOptimizer(topic_out)
+		self.save_npy = save_npy	
 
 
 	def reset(self):
@@ -66,6 +67,8 @@ class TrajGenerator(WaypointsSaver):
 					print("Start recording clicked points.")
 				if not self.click_start:
 					print("End recording clicked points.")
+					if self.save_npy:
+						self.save_wps("/home/charlierkj/asco/src/ugv_localization/records/wps.npy")
 					self.gen_traj()
 					self.reset()
 
@@ -73,6 +76,10 @@ class TrajGenerator(WaypointsSaver):
 				if self.waypoints.shape[0] < self.max_num:
 					self.waypoints = np.vstack((self.waypoints, point.reshape(1, 2)))
 		self.last_waypoint = point
+
+
+	def save_wps(self, path):
+		np.save(path, self.waypoints)
 
 
 	def gen_traj(self):
@@ -96,7 +103,7 @@ if __name__ == "__main__":
 	# rospy.spin()
 
 	# if rospy.is_shutdown():
-	#	waypoints_saver.save_npy(npy_path)
+	#	waypoints_saver.save_wps(npy_path)
 
 	rospy.init_node('gen_traj', anonymous=True)
 
@@ -104,7 +111,7 @@ if __name__ == "__main__":
 	topic_in = rospy.get_param(node_name + '/topic_in')
 	topic_out = rospy.get_param(node_name + '/topic_out')
 
-	traj_generator = TrajGenerator(topic_in, topic_out)
+	traj_generator = TrajGenerator(topic_in, topic_out, save_npy=False)
 	rospy.spin()
 
 
