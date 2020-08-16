@@ -1,6 +1,8 @@
 <?xml version='1.0'?>
 <launch>
 
+	<include file="$(find ugv_localization)/launch/static_tfs.launch"/>	
+
 	<!-- arguments -->
 	<arg name="data" default="test_03"/>
 
@@ -75,9 +77,9 @@
 
 
     <!-- publish required tf (transformation) -->
-	<node pkg="tf2_ros" type="static_transform_publisher" name="base_link2gps" args="0 0 0 0 0 0 base_link gps"/>
+	<!--node pkg="tf2_ros" type="static_transform_publisher" name="base_link2gps" args="0 0 0 0 0 0 base_link gps"/-->
 
-	<node pkg="tf2_ros" type="static_transform_publisher" name="world2map" args="0 0 0 0 0 0 map /world"/>
+	<!--node pkg="tf2_ros" type="static_transform_publisher" name="world2map" args="0 0 0 0 0 0 map /world"/-->
 
 
 	<!-- plot in python -->
@@ -98,36 +100,28 @@
 	<!-- node pkg="ugv_localization" type="world_frame_gps_publisher.py" name="world_frame_gps_publisher"/ -->
 	<include file="$(find ugv_localization)/launch/world_frame_gps_publisher.launch"/>
 
-	<!-- node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/ -->
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/>
 
 
-	<!-- add lidar map and lidar-based localizer -->
+	<!-- add lidar map -->
 	<!-- include file="$(find ugv_localization)/launch/rampage_map_n_static_tf.launch">
 		<arg name="lidarmap" value="latrobe"/>
-	</include>
-
-	<include file="$(find ugv_localization)/launch/rampage_amcl_diff.launch"/ -->
-
-	<!-- generate new map -->
-    <!-- include file="$(find ugv_localization)/launch/gmapping.launch"/ -->
-	<!-- include file="$(find ugv_localization)/launch/hector_slam.launch"/ -->
-
-	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/mapping.rviz"/>
+	</include -->
 
 
 	<!-- visualize map with mapviz -->
-	<node pkg="swri_transform_util" type="initialize_origin.py" name="initialize_origin" >
+	<node pkg="swri_transform_util" type="initialize_origin.py" name="initialize_origin" > 
 		<param name="local_xy_frame" value="map"/>
-    	<param name="local_xy_origin" value="map"/>
-    	<rosparam param="local_xy_origins">[{ name: map, latitude: 39.326465, longitude: -76.621554, altitude: 0, heading: 0.0}]</rosparam>
+    		<param name="local_xy_origin" value="map"/>
+    		<rosparam param="local_xy_origins">[{ name: map, latitude: 39.326465, longitude: -76.621554, altitude: 0, heading: 0.0}]</rosparam>
   	</node>
 
-	<node pkg="mapviz" type="mapviz" name="mapviz">
+	<!--node pkg="mapviz" type="mapviz" name="mapviz">
 		<param name="config" value="$(find ugv_localization)/config/mapviz.mvc"/>
-	</node>
+	</node-->
 
 
 	<!-- click waypoints and generate trajectory -->
-	<include file="$(find ugv_localization)/launch/gen_traj.launch"/>
+	<!--include file="$(find ugv_localization)/launch/gen_traj.launch"/-->
 
 </launch>

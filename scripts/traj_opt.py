@@ -132,7 +132,6 @@ class TrajOptimizer(object):
 				# q = np.array([840*t**3, 360*t**2, 120*t, 24, 0, 0, 0, 0]).reshape(8, 1) # snap
 				Q_i = np.dot(q, q.T) * 0.1
 				self.Q[seg_i * 8 : (seg_i + 1) * 8, seg_i * 8 : (seg_i + 1) * 8] += Q_i
-		print("cost matrix Q has been set up, size of which is ", self.Q.shape)
 
 
 	def set_A(self):
@@ -158,8 +157,6 @@ class TrajOptimizer(object):
 		T = self.durations[-1]
 		self.A[3 * self.num_segments, (self.num_segments - 1) * 8 : self.num_segments * 8] = np.array([7*T**6, 6*T**5, 5*T**4, 4*T**3, 3*T**2, 2*T, 1, 0])
 
-		print("constraint mapping matrix A has been set up, size of which is ", self.A.shape)
-
 
 	def set_d(self):
 		# right-hand-side vector in equality constraints, columns correspond to x, y
@@ -180,8 +177,6 @@ class TrajOptimizer(object):
 
 			# end derivative zero constraint
 			self.d[3 * self.num_segments, axis] = 0
-
-		print("constraint vector d has been set up, size of which is ", self.d.shape)
 
 
 	def set_G(self):
@@ -216,11 +211,15 @@ class TrajOptimizer(object):
 
 
 	def solve_polys_cvxopt(self, axis):
+		# axis: 0 (x-axis), 1 (y-axis)
 		self.set_Q()
+		print("cost matrix Q has been set up, size of which is ", self.Q.shape)
 		self.set_G()
 		self.set_h()
 		self.set_A()
+		print("constraint mapping matrix A has been set up, size of which is ", self.A.shape)
 		self.set_d()
+		print("constraint vector d has been set up, size of which is ", self.d[:, axis].shape)
 		q = matrix(np.zeros(shape=(8 * self.num_segments, 1)))
 		sol = solvers.qp(P=matrix(self.Q), q=q, G=None, h=None, A=matrix(self.A), b=matrix(self.d)[:, axis], kktsolver='ldl')
 		# sol = solvers.qp(P=matrix(self.Q), q=q, G=matrix(self.G), h=matrix(self.h), A=matrix(self.A), b=matrix(self.d)[:, axis], kktsolver='ldl')
@@ -234,10 +233,10 @@ class TrajOptimizer(object):
 			self.polys_x = self.solve_polys_scipy(0)
 			self.polys_y = self.solve_polys_scipy(1)
 		elif solver == 'cvxopt':
-			self.polys_x = self.solve_polys_cvxopt(0)
-			self.polys_y = self.solve_polys_cvxopt(1)
-			for i in range(iterations):
-				self.refine_segment_times()
+			for i in range(iterations + 1):
+				if i != 0:
+					self.refine_segment_times()
+
 				self.polys_x = self.solve_polys_cvxopt(0)
 				self.polys_y = self.solve_polys_cvxopt(1)
 		#print(self.polys_x)
@@ -249,6 +248,7 @@ class TrajOptimizer(object):
 		fig = plt.figure()
 
 		num_samples = 0
+		times = []
 		xs = []
 		ys = []
 		headings = []
@@ -284,11 +284,12 @@ class TrajOptimizer(object):
 				# vels_f.append(vel_f)
 				# vels_l.append(vel_l)
 				accels.append(accel)
+				times.append(np.sum(self.durations[0:seg_i]) + t)
 				num_samples += 1
 
 		# plot traj
 		ax = plt.subplot(gs[0:3, 0])
-		# ax.scatter(self.waypoints[:, 0], self.waypoints[:, 1], color="red")
+		ax.scatter(self.waypoints[:, 0], self.waypoints[:, 1], s=5, color="red")
 		ax.plot(xs, ys)
 		ax.axis('equal')
 		ax.set_xlabel('x [m]')
@@ -297,22 +298,22 @@ class TrajOptimizer(object):
 
 		# plot heading
 		ax = plt.subplot(gs[3, 0])
-		ax.plot(np.arange(num_samples), headings)
+		ax.plot(times, headings)
 		ax.set_xlabel('time')
 		ax.set_ylabel('heading [rad]')
 
 		# plot velocity
 		ax = plt.subplot(gs[4, 0])
-		ax.plot(np.arange(num_samples), vels, color="blue", label="norm")
-		# ax.plot(np.arange(num_samples), vels_f, color="red", label="forward")
-		# ax.plot(np.arange(num_samples), vels_l, color="green", label="lateral")
+		ax.plot(times, vels, color="blue", label="norm")
+		# ax.plot(times, vels_f, color="red", label="forward")
+		# ax.plot(times, vels_l, color="green", label="lateral")
 		# ax.legend()
 		ax.set_xlabel('time')
 		ax.set_ylabel('vel [m/s]')
 
 		# plot acceleration
 		ax = plt.subplot(gs[5, 0])
-		ax.plot(np.arange(num_samples), accels)
+		ax.plot(times, accels)
 		ax.set_xlabel('time')
 		ax.set_ylabel('accel [m/s^-2]')
 
@@ -361,7 +362,7 @@ if __name__ == "__main__":
 	npy_path = "/home/charlierkj/asco/src/ugv_localization/records/wps.npy"
 	traj_opt.load_npy(npy_path)
 	traj_opt.estimate_segment_times()
-	traj_opt.generate_traj()
+	traj_opt.generate_traj(iterations=1)
 	traj_opt.plot_traj(0.1)
 	traj_opt.publish_reftraj()
 

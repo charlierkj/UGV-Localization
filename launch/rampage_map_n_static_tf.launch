@@ -4,7 +4,7 @@
 
   <!-- run the map server-->
   <node name='map_og_original_server' pkg='map_server' type='map_server' args='$(find ugv_localization)/map/map_$(arg lidarmap).yaml' output="screen">
-    <param name='frame_id' value='/og_org'/>
+    <param name='frame_id' value='og_org'/>
   </node> 
 
   <!-- load the transformation between world and occupancy grid origin so that static_transform_publisher can publish it-->

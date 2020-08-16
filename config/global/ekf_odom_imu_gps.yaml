@@ -9,7 +9,7 @@ frequency: 100
 
 two_d_mode: true
 
-publish_tf: false
+publish_tf: true
 
 smooth_lagged_data: true
 history_length: 2
