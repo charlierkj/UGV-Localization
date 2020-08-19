@@ -103,7 +103,7 @@
 
 	<!-- add lidar map and lidar-based localizer -->
 	<include file="$(find ugv_localization)/launch/rampage_map_n_static_tf.launch">
-		<arg name="lidarmap" value="latrobe"/>
+		<arg name="lidarmap" value="hackerman"/>
 	</include>
 
 	<include file="$(find ugv_localization)/launch/rampage_amcl_diff.launch"/>
@@ -123,5 +123,9 @@
 
 	<!-- click waypoints and generate trajectory -->
 	<include file="$(find ugv_localization)/launch/gen_traj.launch"/>
+
+
+	<!-- amcl wrapper -->
+	<!-- node pkg="ugv_localization" type="amcl_wrapper.py" name="amcl_wrapper" output="screen"/ -->
 
 </launch>

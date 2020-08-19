@@ -5,7 +5,7 @@
 #  roll_vel, pitch_vel, yaw_vel,
 #  x_accel , y_accel  , z_accel] ( 15 states)
 
-frequency: 100
+frequency: 50
 
 two_d_mode: true
 

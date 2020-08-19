@@ -2,6 +2,7 @@
 
 import sys
 import rospy
+import rosbag
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -356,11 +357,34 @@ class TrajOptimizer(object):
 
 if __name__ == "__main__":
 
-	rospy.init_node('gen_traj', anonymous=True)
+	rospy.init_node('traj_opt', anonymous=True)
 
 	traj_opt = TrajOptimizer(topic_out="/reftraj", loop=False)
-	npy_path = "/home/charlierkj/asco/src/ugv_localization/records/wps.npy"
-	traj_opt.load_npy(npy_path)
+
+	node_name = rospy.get_name()
+	if rospy.has_param(node_name + '/start_time') and rospy.has_param(node_name + '/end_time'):
+		start_time = rospy.get_param(node_name + '/start_time')
+		end_time = rospy.get_param(node_name + '/end_time')
+		last_time = -1
+
+		wps_np = np.empty((0, 2))
+		bag = rosbag.Bag('/home/charlierkj/asco/src/ugv_localization/bag/test_01.bag')
+		for topic, msg, t in bag.read_messages(topics=['/odometry']):
+			if t.secs < start_time or t.secs > end_time:
+				continue
+
+			if t.secs - last_time >= 1:
+				new_wps = np.array([[msg.pose.pose.position.x, msg.pose.pose.position.y]])
+				wps_np = np.vstack((wps_np, new_wps))
+				last_time = t.secs
+				
+		bag.close()
+		traj_opt.set_wps(wps_np)
+
+	else:
+		npy_path = "/home/charlierkj/asco/src/ugv_localization/records/wps.npy"
+		traj_opt.load_npy(npy_path)
+
 	traj_opt.estimate_segment_times()
 	traj_opt.generate_traj(iterations=1)
 	traj_opt.plot_traj(0.1)

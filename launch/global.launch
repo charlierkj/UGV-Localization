@@ -10,7 +10,7 @@
 
 		<param name="use_sim_time" value="true"/>
 
-		<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock"/>
+		<node pkg="rosbag" type="play" name="rosbag_play" args="-s 90 $(find ugv_localization)/bag/$(arg data).bag --clock"/>
 
 	</group>
 
@@ -103,10 +103,11 @@
 
 	<!-- add lidar map and lidar-based localizer -->
 	<!-- include file="$(find ugv_localization)/launch/rampage_map_n_static_tf.launch">
-		<arg name="lidarmap" value="latrobe"/>
+		<arg name="lidarmap" value="gilman"/>
 	</include>
 
 	<include file="$(find ugv_localization)/launch/rampage_amcl_diff.launch"/ -->
+	<node pkg="ugv_localization" type="amcl_wrapper.py" name="amcl_wrapper" output="screen"/>
 
 	<!-- generate new map -->
     <!-- include file="$(find ugv_localization)/launch/gmapping.launch"/ -->
