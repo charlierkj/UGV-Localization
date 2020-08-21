@@ -10,7 +10,7 @@
 
 		<param name="use_sim_time" value="true"/>
 
-		<node pkg="rosbag" type="play" name="rosbag_play" args="-s 90 $(find ugv_localization)/bag/$(arg data).bag --clock"/>
+		<node pkg="rosbag" type="play" name="rosbag_play" args="-s 600 $(find ugv_localization)/bag/$(arg data).bag --clock"/>
 
 	</group>
 
@@ -113,11 +113,11 @@
     <!-- include file="$(find ugv_localization)/launch/gmapping.launch"/ -->
 	<!-- include file="$(find ugv_localization)/launch/hector_slam.launch"/ -->
 
-	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/mapping.rviz"/>
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/amcl.rviz"/>
 
 
 	<!-- visualize map with mapviz -->
-	<node pkg="swri_transform_util" type="initialize_origin.py" name="initialize_origin" >
+	<!-- node pkg="swri_transform_util" type="initialize_origin.py" name="initialize_origin" >
 		<param name="local_xy_frame" value="map"/>
     	<param name="local_xy_origin" value="map"/>
     	<rosparam param="local_xy_origins">[{ name: map, latitude: 39.326465, longitude: -76.621554, altitude: 0, heading: 0.0}]</rosparam>
@@ -125,10 +125,10 @@
 
 	<node pkg="mapviz" type="mapviz" name="mapviz">
 		<param name="config" value="$(find ugv_localization)/config/mapviz.mvc"/>
-	</node>
+	</node -->
 
 
 	<!-- click waypoints and generate trajectory -->
-	<include file="$(find ugv_localization)/launch/gen_traj.launch"/>
+	<!-- include file="$(find ugv_localization)/launch/gen_traj.launch"/ -->
 
 </launch>

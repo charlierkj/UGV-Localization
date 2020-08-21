@@ -61,6 +61,13 @@ imu1_config: [false, false, false,
 imu1_differential: false
 #imu1_pose_rejection_threshold: 1
 
+pose0: amcl_pose
+pose0_config: [true, true, false,
+               false, false, true,
+               false, false, false,
+               false, false, false,
+               false, false, false]
+
 # zero initial state, will be reset inside the code
 initial_state: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 

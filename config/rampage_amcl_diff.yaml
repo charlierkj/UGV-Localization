@@ -9,9 +9,9 @@ gui_publish_rate: -1 #Maximum rate (Hz) at which scans and paths are published f
 #initial_pose_x: 32.72311434462046
 #initial_pose_y: 61.539338476240964
 #initial_pose_a: -1.6221549089628575
-#initial_cov_xx: 1.0
-#initial_cov_yy: 1.0
-#initial_cov_aa: 0.0685 
+initial_cov_xx: 10
+initial_cov_yy: 10
+initial_cov_aa: 0.685 
 
 # when to perform updates
 update_min_d: 0.1
