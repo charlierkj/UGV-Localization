@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import sys
+import os, sys
 import rospy
+import rospkg
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -45,11 +46,13 @@ class WaypointsSaver(object):
 
 class TrajGenerator(WaypointsSaver):
 
-	def __init__(self, topic_in, topic_out, max_num=30, save_npy=False):
+	def __init__(self, topic_in, topic_out, max_num=30, vel=1, accel=1, save_npy=False, save_traj_file=None, save_plot_file=None):
 		super(TrajGenerator, self).__init__(topic_in, max_num)
 
-		self.traj_optimizer = TrajOptimizer(topic_out)
-		self.save_npy = save_npy	
+		self.traj_optimizer = TrajOptimizer(topic_out, vel=vel, accel=accel)
+		self.save_npy = save_npy
+		self.save_traj_file = save_traj_file
+		self.save_plot_file = save_plot_file
 
 
 	def reset(self):
@@ -68,7 +71,7 @@ class TrajGenerator(WaypointsSaver):
 				if not self.click_start:
 					print("End recording clicked points.")
 					if self.save_npy:
-						self.save_wps("/home/charlierkj/asco/src/ugv_localization/records/wps.npy")
+						self.save_wps(os.path.join(rospkg.RosPack.get_path("ugv_localization"), "records", "wps.npy"))
 					self.gen_traj()
 					self.reset()
 
@@ -87,9 +90,13 @@ class TrajGenerator(WaypointsSaver):
 		self.traj_optimizer.set_wps(self.waypoints)
 		self.traj_optimizer.estimate_segment_times()
 		self.traj_optimizer.generate_traj()
-		self.traj_optimizer.plot_traj(0.1)
-		self.traj_optimizer.publish_reftraj()
+		fig = self.traj_optimizer.plot_traj(0.1)
+		msg = self.traj_optimizer.publish_reftraj()
 		print("Done. Message published to topic: %s" % self.traj_optimizer.topic_out)
+		if self.save_traj_file != "None":
+			self.traj_optimizer.save_reftraj(msg, self.save_traj_file)
+		if self.save_plot_file != "None":
+			self.traj_optimizer.save_plot(fig, self.save_plot_file)
 
 
 if __name__ == "__main__":
@@ -110,8 +117,13 @@ if __name__ == "__main__":
 	node_name = rospy.get_name()
 	topic_in = rospy.get_param(node_name + '/topic_in')
 	topic_out = rospy.get_param(node_name + '/topic_out')
+	max_num = int(rospy.get_param(node_name + '/maxnum_clicked_waypoints'))
+	vel = float(rospy.get_param(node_name + '/velocity'))
+	accel = float(rospy.get_param(node_name + '/acceleration'))
+	save_traj_file = rospy.get_param(node_name + '/save_traj_file')
+	save_plot_file = rospy.get_param(node_name + '/save_plot_file')
 
-	traj_generator = TrajGenerator(topic_in, topic_out, save_npy=False)
+	traj_generator = TrajGenerator(topic_in, topic_out, max_num=max_num, save_npy=False, save_traj_file=save_traj_file)
 	rospy.spin()
 
 

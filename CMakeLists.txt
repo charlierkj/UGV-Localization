@@ -133,6 +133,8 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/ugv_localization.cpp
 # )
+add_library(wheel_vel_odom src/wheel_vel_odom.cpp)
+add_library(gps_navheading_subpub src/gps_navheading_subpub.cpp)
 add_library(gps_odom src/gps_odom.cpp)
 
 ## Add cmake target dependencies of the library
@@ -147,6 +149,7 @@ add_library(gps_odom src/gps_odom.cpp)
 add_executable(datum_tf_node src/datum_tf_node.cpp)
 add_executable(gps_odom_node src/gps_odom_node.cpp)
 add_executable(gps_navheading_node src/gps_navheading_node.cpp)
+add_executable(topic_process_node src/topic_process_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -163,9 +166,12 @@ add_executable(gps_navheading_node src/gps_navheading_node.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(datum_tf_node ${catkin_LIBRARIES})
+target_link_libraries(wheel_vel_odom ${catkin_LIBRARIES})
 target_link_libraries(gps_odom ${catkin_LIBRARIES})
 target_link_libraries(gps_odom_node ${catkin_LIBRARIES} gps_odom)
-target_link_libraries(gps_navheading_node ${catkin_LIBRARIES})
+target_link_libraries(gps_navheading_subpub ${catkin_LIBRARIES})
+target_link_libraries(gps_navheading_node ${catkin_LIBRARIES} gps_navheading_subpub)
+target_link_libraries(topic_process_node ${catkin_LIBRARIES} wheel_vel_odom gps_navheading_subpub gps_odom)
 
 #############
 ## Install ##

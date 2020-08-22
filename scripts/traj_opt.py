@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-import sys
+import os, sys
 import rospy
 import rosbag
+import rospkg
 
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import yaml
 
 import scipy.optimize
 from cvxopt import solvers
@@ -19,11 +21,13 @@ MAGIC_FABIAN_CONST = 6.5
 
 class TrajOptimizer(object):
 
-	def __init__(self, topic_out, loop=False):
+	def __init__(self, topic_out, vel=1, accel=1, loop=False):
 		self.polys_x = None
 		self.polys_y = None
 		self.time = None
 
+		self.vel = vel
+		self.accel = accel
 		self.loop = loop
 
 		self.topic_out = topic_out
@@ -46,8 +50,8 @@ class TrajOptimizer(object):
 
 
 	def estimate_segment_times(self):
-		v_max = 2.0 # hardcoded
-		a_max = 2.0
+		v_max = self.vel
+		a_max = self.accel
 		for seg_i in range(self.num_segments):
 			start = self.waypoints[seg_i, :]
 			end = self.waypoints[seg_i + 1, :]
@@ -59,8 +63,8 @@ class TrajOptimizer(object):
 
 
 	def refine_segment_times(self):
-		v_appr = 2.0 # hardcoded
-		a_appr = 2.0
+		v_appr = self.vel
+		a_appr = self.accel
 		for seg_i in range(self.num_segments):
 			dist = 0
 			for t in np.arange(0, self.durations[seg_i], 0.01):
@@ -319,6 +323,7 @@ class TrajOptimizer(object):
 		ax.set_ylabel('accel [m/s^-2]')
 
 		plt.show()
+		return fig
 
 
 	def publish_reftraj(self, dt = 1):
@@ -353,6 +358,31 @@ class TrajOptimizer(object):
 		msg.modifier = [0, 0, 0, 1]
 		msg.looping = self.loop
 		self.pub.publish(msg)
+		return msg
+
+
+	def save_reftraj(self, msg, save_file):
+		msg_dict = {}
+		msg_dict["axyt"] = [float(c) for c in msg.axyt]
+		msg_dict["modifier"] = msg.modifier
+		msg_dict["looping"] = msg.looping
+		folder_path = os.path.join(rospkg.RosPack().get_path("ugv_localization"), "traj")
+		if not os.path.exists(folder_path):
+			os.mkdir(folder_path)
+		file_path = os.path.join(folder_path, "%s.yaml" % save_file)
+		with open(file_path, 'w') as f:
+			data = yaml.dump(msg_dict, f)
+		print("generate trajectory saved to %s" % file_path)
+
+
+	def save_plot(self, fig, save_file):
+		folder_path = os.path.join(rospkg.RosPack().get_path("ugv_localization"), "plot")
+		if not os.path.exists(folder_path):
+			os.mkdir(folder_path)
+		file_path = os.path.join(folder_path, "%s.png" % save_file)
+		fig.savefig(file_path)
+		print("trajectory plot saved to %s" % file_path)
+		
 
 
 if __name__ == "__main__":
@@ -362,14 +392,17 @@ if __name__ == "__main__":
 	traj_opt = TrajOptimizer(topic_out="/reftraj", loop=False)
 
 	node_name = rospy.get_name()
-	if rospy.has_param(node_name + '/start_time') and rospy.has_param(node_name + '/end_time'):
+	if rospy.has_param(node_name + '/start_time') and rospy.has_param(node_name + '/end_time') and rospy.has_param(node_name + "/bagfile") and rospy.has_param(node_name + "/topic"):
 		start_time = rospy.get_param(node_name + '/start_time')
 		end_time = rospy.get_param(node_name + '/end_time')
+		bagfile = rospy.get_param(node_name + "/bagfile")
+		topic = rospy.get_param(node_name + "/topic")
 		last_time = -1
 
 		wps_np = np.empty((0, 2))
-		bag = rosbag.Bag('/home/charlierkj/asco/src/ugv_localization/bag/test_01.bag')
-		for topic, msg, t in bag.read_messages(topics=['/odometry']):
+		bag_path = os.path.join(rospkg.RosPack().get_path("ugv_localization"), "bag", "%s.bag" % bagfile)
+		bag = rosbag.Bag(bag_path)
+		for topic, msg, t in bag.read_messages(topics=[topic]):
 			if t.secs < start_time or t.secs > end_time:
 				continue
 
@@ -382,13 +415,24 @@ if __name__ == "__main__":
 		traj_opt.set_wps(wps_np)
 
 	else:
-		npy_path = "/home/charlierkj/asco/src/ugv_localization/records/wps.npy"
+		npy_path = os.path.join(rospkg.RosPack().get_path("ugv_localization"), "records/wps.npy")
 		traj_opt.load_npy(npy_path)
 
+	vel = float(rospy.get_param(node_name + '/vel')) if rospy.has_param(node_name + '/vel') else 1.0
+	accel = float(rospy.get_param(node_name + '/accel')) if rospy.has_param(node_name + '/accel') else 1.0
+	
 	traj_opt.estimate_segment_times()
 	traj_opt.generate_traj(iterations=1)
-	traj_opt.plot_traj(0.1)
-	traj_opt.publish_reftraj()
+	fig = traj_opt.plot_traj(0.1)
+	msg = traj_opt.publish_reftraj()
+	
+	if rospy.has_param(node_name + '/save_traj'):
+		save_traj_file = rospy.get_param(node_name + '/save_traj')
+		traj_opt.save_reftraj(msg, save_traj_file)
+
+	if rospy.has_param(node_name + '/save_plot'):
+		save_plot_file = rospy.get_param(node_name + '/save_plot')
+		tra_opt.save_plot(fig, save_plot_file)
 
 	rospy.spin()
 

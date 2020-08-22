@@ -109,8 +109,8 @@ void GPSOdom::callback(const sensor_msgs::NavSatFix& msg_gps)
 	msg_odom.pose.pose.orientation.z = 0;
 	msg_odom.pose.pose.orientation.w = 1;
 
-	msg_odom.pose.covariance[0] = time_scale * cov_scale_ * msg_gps.position_covariance[4] + fabs(noise_x) * 10;
-	msg_odom.pose.covariance[7] = time_scale * cov_scale_ * msg_gps.position_covariance[0] + fabs(noise_y) * 10;
+	msg_odom.pose.covariance[0] = time_scale * cov_scale_ * msg_gps.position_covariance[4] + fabs(noise_x);
+	msg_odom.pose.covariance[7] = time_scale * cov_scale_ * msg_gps.position_covariance[0] + fabs(noise_y);
 	msg_odom.pose.covariance[14] = time_scale * cov_scale_ * msg_gps.position_covariance[8];
 	// msg_odom.pose.covariance[0] = cov_scale_ * msg_gps.position_covariance[4];
 	// msg_odom.pose.covariance[7] = cov_scale_ * msg_gps.position_covariance[0];

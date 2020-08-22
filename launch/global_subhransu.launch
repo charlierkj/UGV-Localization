@@ -66,7 +66,7 @@
  	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
 		<param name="filter_node_name" value="ekf_odom_gps_imu"/>
 		<param name="topic_out" value="odometry/filtered"/>
-		<param name="config_file" value="$(find ugv_localization)/config/global/ekf_odom_imu_gps.yaml"/>
+		<param name="config_file" value="$(find ugv_localization)/params/global/ekf_odom_imu_gps.yaml"/>
 	</node>
 
 	<!-- node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper_t265" args="/odometry/wheel_imu/t265 /odometry/gps /gps/navheading" output="screen">
@@ -100,7 +100,7 @@
 	<!-- node pkg="ugv_localization" type="world_frame_gps_publisher.py" name="world_frame_gps_publisher"/ -->
 	<include file="$(find ugv_localization)/launch/world_frame_gps_publisher.launch"/>
 
-	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/rviz_satellite.rviz"/>
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/launch/rviz_satellite.rviz"/>
 
 
 	<!-- add lidar map -->
@@ -117,7 +117,7 @@
   	</node>
 
 	<!--node pkg="mapviz" type="mapviz" name="mapviz">
-		<param name="config" value="$(find ugv_localization)/config/mapviz.mvc"/>
+		<param name="config" value="$(find ugv_localization)/launch/mapviz.mvc"/>
 	</node-->
 
 
