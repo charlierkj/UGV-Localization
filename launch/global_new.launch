@@ -90,4 +90,8 @@
 	<!-- click waypoints and generate trajectory -->
 	<include file="$(find ugv_localization)/launch/gen_traj.launch"/>
 
+
+	<!-- test interactive markers server -->
+	<!-- node pkg="ugv_localization" type="waypoints_marker.py" name="waypoints_marker_server" output="screen"/ -->
+
 </launch>

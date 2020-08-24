@@ -6,6 +6,8 @@ import rosbag
 import rospkg
 
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import yaml
@@ -249,7 +251,8 @@ class TrajOptimizer(object):
 
 
 	def plot_traj(self, dt):
-		gs = gridspec.GridSpec(6, 1)
+		plt.close()
+		gs = gridspec.GridSpec(7, 1)
 		fig = plt.figure()
 
 		num_samples = 0
@@ -261,6 +264,7 @@ class TrajOptimizer(object):
 		# vels_f = [] # forward velocity
 		# vels_l = [] # lateral velocity
 		accels = []
+		jerks = []
 		for seg_i in range(self.num_segments):
 			for t in np.arange(0, self.durations[seg_i], dt):
 				poly_x = self.polys_x[seg_i * 8 : (seg_i + 1) * 8]
@@ -271,15 +275,20 @@ class TrajOptimizer(object):
 				poly_vely = np.polyder(poly_y, 1)
 				poly_accelx = np.polyder(poly_x, 2)
 				poly_accely = np.polyder(poly_y, 2)
+				poly_jerkx = np.polyder(poly_x, 3)
+				poly_jerky = np.polyder(poly_y, 3)
 				vel_x = np.polyval(poly_velx, t)
 				vel_y = np.polyval(poly_vely, t)
 				accel_x = np.polyval(poly_accelx, t)
 				accel_y = np.polyval(poly_accely, t)
+				jerk_x = np.polyval(poly_jerkx, t)
+				jerk_y = np.polyval(poly_jerky, t)
 				heading = np.arctan2(vel_y, vel_x)
 				vel = np.linalg.norm([vel_x, vel_y])
 				# vel_f = vel_x * np.cos(heading) + vel_y * np.sin(heading)
 				# vel_l = - vel_x * np.sin(heading) + vel_y * np.cos(heading)
 				accel = np.linalg.norm([accel_x, accel_y])
+				jerk = np.linalg.norm([jerk_x, jerk_y])
 				#if t == 0:
 				#	print(x, y)
 				xs.append(x)
@@ -289,6 +298,7 @@ class TrajOptimizer(object):
 				# vels_f.append(vel_f)
 				# vels_l.append(vel_l)
 				accels.append(accel)
+				jerks.append(jerk)
 				times.append(np.sum(self.durations[0:seg_i]) + t)
 				num_samples += 1
 
@@ -320,7 +330,13 @@ class TrajOptimizer(object):
 		ax = plt.subplot(gs[5, 0])
 		ax.plot(times, accels)
 		ax.set_xlabel('time')
-		ax.set_ylabel('accel [m/s^-2]')
+		ax.set_ylabel('accel [m/s^2]')
+
+		# plot jerk
+		ax = plt.subplot(gs[6, 0])
+		ax.plot(times, jerks)
+		ax.set_xlabel('time')
+		ax.set_ylabel('jerk [m/s^3]')
 
 		plt.show()
 		return fig
@@ -376,7 +392,7 @@ class TrajOptimizer(object):
 
 
 	def save_plot(self, fig, save_file):
-		folder_path = os.path.join(rospkg.RosPack().get_path("ugv_localization"), "plot")
+		folder_path = os.path.join(rospkg.RosPack().get_path("ugv_localization"), "traj")
 		if not os.path.exists(folder_path):
 			os.mkdir(folder_path)
 		file_path = os.path.join(folder_path, "%s.png" % save_file)
@@ -397,6 +413,12 @@ if __name__ == "__main__":
 		end_time = rospy.get_param(node_name + '/end_time')
 		bagfile = rospy.get_param(node_name + "/bagfile")
 		topic = rospy.get_param(node_name + "/topic")
+
+		if rospy.has_param(node_name + '/wps_every_secs'):
+			wps_every_secs = rospy.get_param(node_name + '/wps_every_secs')
+		else:
+			wps_every_secs = 1
+
 		last_time = -1
 
 		wps_np = np.empty((0, 2))
@@ -406,7 +428,7 @@ if __name__ == "__main__":
 			if t.secs < start_time or t.secs > end_time:
 				continue
 
-			if t.secs - last_time >= 1:
+			if t.secs - last_time >= wps_every_secs:
 				new_wps = np.array([[msg.pose.pose.position.x, msg.pose.pose.position.y]])
 				wps_np = np.vstack((wps_np, new_wps))
 				last_time = t.secs
@@ -427,12 +449,9 @@ if __name__ == "__main__":
 	msg = traj_opt.publish_reftraj()
 	
 	if rospy.has_param(node_name + '/save_traj'):
-		save_traj_file = rospy.get_param(node_name + '/save_traj')
-		traj_opt.save_reftraj(msg, save_traj_file)
-
-	if rospy.has_param(node_name + '/save_plot'):
-		save_plot_file = rospy.get_param(node_name + '/save_plot')
-		tra_opt.save_plot(fig, save_plot_file)
+		save_traj = rospy.get_param(node_name + '/save_traj')
+		traj_opt.save_reftraj(msg, save_traj)
+		tra_opt.save_plot(fig, save_traj)
 
 	rospy.spin()
 

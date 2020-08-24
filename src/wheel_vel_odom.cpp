@@ -22,7 +22,7 @@ void WheelVelOdom::callbackWheelOdometry(const rampage_msgs::WheelOdometry &m)
 	msg_odom.twist.twist.linear.x = WheelVelOdom::motorRpmToVelocity(m.delta_ticks);
 	msg_odom.twist.twist.linear.y = 0;
 	msg_odom.twist.twist.linear.z = 0;
-			
+
 	pub_.publish(msg_odom);
 	seq_++;
 }
