@@ -6,8 +6,12 @@ import rospkg
 
 import numpy as np
 
-from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import PointStamped, PoseStamped
 from visualization_msgs.msg import InteractiveMarkerFeedback
+from rampage_msgs.msg import RefTrajAxyt
+from nav_msgs.msg import Path
+
+from tf import transformations
 
 from traj_opt import TrajOptimizer
 from waypoints_marker import WaypointsMarkerManager
@@ -55,6 +59,10 @@ class TrajGenerator(WaypointsSaver):
 		self.save_npy = save_npy
 		self.save_traj_file = save_traj_file
 		self.save_plot_file = save_plot_file
+
+		# used for visualizing Path in Rviz
+		self.sub_axyt = rospy.Subscriber(topic_out, RefTrajAxyt, self.callback_axyt)
+		self.pub_path = rospy.Publisher(topic_out + "/path", Path, queue_size=1)
 
 		self.refine = refine
 
@@ -108,6 +116,32 @@ class TrajGenerator(WaypointsSaver):
 			self.waypoints = self.marker_server.get_waypoints()
 		if (marker_feedback.control_name == "start_refine") and (marker_feedback.event_type == 3):
 			self.refine_traj()
+
+
+	def callback_axyt(self, msg_axyt):
+		axyt_np = np.array(msg_axyt.axyt).reshape(4, -1)
+		num_pts = axyt_np.shape[1]
+		msg_path = Path()
+		msg_path.header.stamp = rospy.Time.now()
+		msg_path.header.frame_id = "map"
+		seq = 0
+		for i in range(num_pts):
+			msg_pose = PoseStamped()
+			msg_pose.header.seq = seq
+			seq += 1
+			stamp_sec = msg_path.header.stamp.to_sec() + axyt_np[3, i]
+			msg_pose.header.stamp = rospy.Time.from_sec(stamp_sec)
+			msg_pose.header.frame_id = "map"
+			msg_pose.pose.position.x = axyt_np[1, i]
+			msg_pose.pose.position.y = axyt_np[2, i]
+			msg_pose.pose.position.z = 0
+			q = transformations.quaternion_from_euler(0, 0, axyt_np[0, i])
+			msg_pose.pose.orientation.x = q[0]
+			msg_pose.pose.orientation.y = q[1]
+			msg_pose.pose.orientation.z = q[2]
+			msg_pose.pose.orientation.w = q[3]
+			msg_path.poses.append(msg_pose)
+		self.pub_path.publish(msg_path)
 
 
 	def save_wps(self, path):
