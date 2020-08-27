@@ -7,7 +7,8 @@ import rospkg
 
 import numpy as np
 import matplotlib
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import yaml
@@ -251,7 +252,7 @@ class TrajOptimizer(object):
 
 
 	def plot_traj(self, dt):
-		plt.close()
+		#plt.close()
 		gs = gridspec.GridSpec(7, 1)
 		fig = plt.figure()
 
@@ -338,7 +339,7 @@ class TrajOptimizer(object):
 		ax.set_xlabel('time')
 		ax.set_ylabel('jerk [m/s^3]')
 
-		plt.show()
+		#plt.show()
 		return fig
 
 

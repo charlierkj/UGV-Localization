@@ -103,7 +103,7 @@ class AmclWrapper(object):
 		o2b_a = tf.transformations.euler_from_quaternion(o2b_rot)[2]
 		
 		cmds = []
-		cmds.append("rosparam set /amcl/initial_pose_x %s" % str(float(o2b_trans[0]) + 5))
+		cmds.append("rosparam set /amcl/initial_pose_x %s" % o2b_trans[0])
 		cmds.append("rosparam set /amcl/initial_pose_y %s" % o2b_trans[1])
 		cmds.append("rosparam set /amcl/initial_pose_a %s" % o2b_a)
 		for cmd in cmds:

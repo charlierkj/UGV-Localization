@@ -10,17 +10,9 @@
 
 		<param name="use_sim_time" value="true"/>
 
-		<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock"/>
+		<node pkg="rosbag" type="play" name="rosbag_play" args="$(find ugv_localization)/bag/$(arg data).bag --clock" output="screen"/>
 
 	</group>
-
-
-	<!-- refine imu message into conventional frame -->
-	<node pkg="ugv_localization" type="imu_combine.py" name="imu_refine" output="screen">
-		<param name="mode" value="refine"/>
-		<param name="sensor" value="3dm"/>
-		<!-- param name="sensor" value="t265"/ -->
-	</node>
 
 
 	<!-- process sensor input messages altogether -->
@@ -39,40 +31,12 @@
 
     <!-- publish required tf (transformation) -->
 	<include file="$(find ugv_localization)/launch/static_tfs.launch"/>
-
-
-	<!-- plot in python -->
-    <!-- node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_odom" args="/odometry/filtered odom" output="screen"/ -->
-
-    <!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_imu" args="/imu_3dm/imu imu" output="screen"/-->
-
-	<!--node pkg="ugv_localization" type="plot_traj.py" name="plot_traj_gps" args="/rtk_ublox/fix gps" output="screen"/-->
-	
-
-	<!-- node pkg="ugv_localization" type="plot_curve.py" name="plot_curve" output="screen">
-		<param name="mode" value="global"/>
-		<param name="data" value="$(arg data)"/>
-	</node -->
 	
 
 	<!-- publish /world/fix and visualize with rviz_satellite -->
 	<include file="$(find ugv_localization)/launch/world_frame_gps_publisher.launch"/>
 
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/launch/rviz_satellite.rviz"/>
-
-
-	<!-- add lidar map and lidar-based localizer -->
-	<!-- include file="$(find ugv_localization)/launch/rampage_map_n_static_tf.launch">
-		<arg name="lidarmap" value="latrobe"/>
-	</include>
-
-	<include file="$(find ugv_localization)/launch/rampage_amcl_diff.launch"/ -->
-
-	<!-- generate new map -->
-    <!-- include file="$(find ugv_localization)/launch/gmapping.launch"/ -->
-	<!-- include file="$(find ugv_localization)/launch/hector_slam.launch"/ -->
-
-	<!-- node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/rviz/mapping.rviz"/ -->
 
 
 	<!-- visualize map with mapviz -->
@@ -89,9 +53,5 @@
 
 	<!-- click waypoints and generate trajectory -->
 	<include file="$(find ugv_localization)/launch/gen_traj.launch"/>
-
-
-	<!-- test interactive markers server -->
-	<!-- node pkg="ugv_localization" type="waypoints_marker.py" name="waypoints_marker_server" output="screen"/ -->
 
 </launch>

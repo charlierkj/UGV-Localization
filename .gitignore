@@ -1,8 +1,7 @@
 bag/
-config/
 debug/
 figs/
 plot/
-map/
 records/
 traj/
+*.pyc

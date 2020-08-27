@@ -1,0 +1,55 @@
+<?xml version='1.0'?>
+<launch>
+	<!-- refine imu message into conventional frame -->
+	<node pkg="ugv_localization" type="imu_combine.py" name="imu_refine" output="screen">
+		<param name="mode" value="refine"/>
+		<param name="sensor" value="3dm"/>
+		<!-- param name="sensor" value="t265"/ -->
+	</node>
+
+	<!-- node pkg="ugv_localization" type="imu_combine.py" name="imu_refine_t265" output="screen">
+		<param name="mode" value="refine"/>
+		<param name="sensor" value="t265"/>
+		<remap from="imu/refined" to="imu/refined/t265"/>
+	</node -->
+
+
+	<!-- get 2D baseline odometry using wheel encoder and imu -->
+	<node pkg="ugv_localization" type="wheel_imu_odom.py" name="wheel_imu_odom" args="/wheel_odometry /imu/refined /odometry/wheel_imu" output="screen"/>
+
+	<!-- node pkg="ugv_localization" type="wheel_imu_odom.py" name="wheel_imu_odom_t265" args="/wheel_odometry /imu/refined/t265 /odometry/wheel_imu/t265" output="screen"/ -->
+
+
+	<!-- convert GPS into map frame -->
+	<node pkg="ugv_localization" type="gps_odom_node" name="gps_odom_node" output="screen">
+		<param name="coordinate_system" type="string" value="wgs84"/>
+		<param name="topic_gps" type="string" value="/gps/fix"/>
+		<param name="topic_odom" type="string" value="/odometry/gps"/>
+		<param name="latitude" type="double" value="39.326465"/>
+		<param name="longitude" type="double" value="-76.621554"/>
+		<param name="frame_id" type="string" value="map"/>
+		<param name="child_frame_id" type="string" value="base_link"/>
+		<param name="cov_threshold" type="double" value="1"/>
+		<param name="cov_scale" type="double" value="100"/>
+	</node>
+
+
+	<!-- re-model GPS heading -->
+	<node pkg="ugv_localization" type="gps_navheading_node" name="gps_navheading_node" output="screen">
+		<param name="topic_out" type="string" value="/gps/navheading/new"/>
+		<param name="cov_thresh" type="double" value="1000"/>
+	</node>
+
+
+	<!-- rescale GPS cov -->
+	<!-- node pkg="ugv_localization" type="gps_cov_handler.py" name="gps_cov_handler" output="screen"/ -->
+
+
+	<!-- fusion by robot_localization package -->
+ 	<node pkg="ugv_localization" type="global_filter_wrapper.py" name="global_filter_wrapper" args="/odometry/wheel_imu /odometry/gps /gps/navheading" output="screen">
+		<param name="filter_node_name" value="ekf_odom_gps_imu"/>
+		<param name="topic_out" value="odometry/filtered"/>
+		<param name="config_file" value="$(find ugv_localization)/params/global/ekf_odom_imu_gps.yaml"/>
+	</node>
+
+</launch>

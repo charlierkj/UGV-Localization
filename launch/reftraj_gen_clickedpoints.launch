@@ -15,7 +15,8 @@
 	<node pkg="mapviz" type="mapviz" name="mapviz">
 		<param name="config" value="$(find ugv_localization)/launch/mapviz.mvc"/>
 	</node>
-
+	
+	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find ugv_localization)/launch/rviz_satellite.rviz"/>
 
 	<!-- click waypoints and generate trajectory -->
 	<include file="$(find ugv_localization)/launch/gen_traj.launch"/>

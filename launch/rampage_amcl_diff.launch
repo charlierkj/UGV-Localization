@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <launch>
-  <node pkg="amcl" type="amcl" name="amcl" output="screen">
-    <remap from="/scan" to="/scan"/> 
-    <remap from="/initialpose" to="/amcl_initialpose"/>
-    <rosparam command="load" file="$(find ugv_localization)/config/rampage_amcl_diff.yaml" />  	
-  </node>
-    
-  <!--include file="$(find rampage_estimator_and_controller)/launch/odom2baselink_odometrymsg_amclinitialposetrick.launch"/-->	
+  
+	<node pkg="amcl" type="amcl" name="amcl" output="screen">
+    	<remap from="/scan" to="/scan"/> 
+    	<remap from="/initialpose" to="/amcl_initialpose"/>
+    	<rosparam command="load" file="$(find ugv_localization)/params/rampage_amcl_diff.yaml" />  	
+  	</node>
+	
 </launch>

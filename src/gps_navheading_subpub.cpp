@@ -3,7 +3,7 @@
 
 GPSNavHeadingSubPub::GPSNavHeadingSubPub(ros::NodeHandle& nh, std::string topic_out, double cov_thresh) : nh_(nh), topic_out_(topic_out), cov_thresh_(cov_thresh)
 {
-	sub_ = nh_.subscribe("gps/navrelposned", 10, &GPSNavHeadingSubPub::callbackNavRelPosNed, this);
+	sub_ = nh_.subscribe("gps/navrelposned", 10, &GPSNavHeadingSubPub::callbackNavRelPosNed, this, ros::TransportHints().udp());
 	pub_ = nh_.advertise<sensor_msgs::Imu>(topic_out_, 10);
 
 	last_time_ = -1;

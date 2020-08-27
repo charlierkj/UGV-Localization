@@ -28,9 +28,9 @@ Run the following comman to build the package
 catkin build ugv_localization
 ```
 
-## Run the nodes
+## Important Nodes
 
-### 1. Set up the mapviz server for visualizing google map
+### 1. MapProxy Satellite Map Tile Server Setup
 
 **Note: This step is optional and can be skipped if you want to use mapbox instead of google map for visualization in mapviz (which is the current default setting for mapviz).**
 
@@ -42,9 +42,14 @@ mkdir ~/mapproxy
 ```
 sudo docker run -p 8080:8080 -d -t -v ~/mapproxy:/mapproxy danielsnider/mapproxy
 ```
-1.3. Switch the Source of "tile_map" in mapviz to "google map".  
+1.3 To confirm that the map tile server is working, browse  http://127.0.0.1:8080/demo/
 
-### 2. Start localization under your workspace
+1.4. Switch the Source of "tile_map" in mapviz to "google map".  
+
+### 2. UGV Localization Node
+
+#### Launch:
+
 ```
 source devel/setup.bash
 roslaunch ugv_localization global.launch data:={real/bagfile} 
@@ -52,13 +57,17 @@ roslaunch ugv_localization global.launch data:={real/bagfile}
 
 Node: you have to replace ```{real/bagfile}``` with either ```real``` (if you want to run the localizer on robot in real-time) or the filename (without extension) of pre-recorded rosbag (if you want to run the localizer with replaying a bagfile under /bag folder).
 
-### 3. Parameter files and other utilities
+#### Params:
 
-The message processing related parameters are in "/params/topic_process.yaml". (This is used in "topic_process_node", which integrates all GPS and wheel encoder message conversions into one single node.)
+The ekf filter-related parameters are in `/params/global/ekf_odom_imu_gps.yaml`.
 
-The ekf filter-related parameters are in "/params/global/ekf_odom_imu_gps.yaml".
+### 3. Tools and Utilities
 
-The clicking points and trajectory generation related parameters are in "/params/reftra_gen.yaml" (the associated launch file is "/launch/gen_traj.launch"). To note, when the parameter "save_traj_file" is set to "None", the generated trajectory as well as its plot will not be saved; if it is set to "save_traj_file : traj_abc" for example, the generated trajectory message will be saved to "/traj/traj_abc.yaml", and its plot will be saved to "/traj/traj_abc.png"
+The message processing related parameters are in `/params/topic_process.yaml`. (This is used in "topic_process_node", which integrates all GPS and wheel encoder message conversions into one single node.)
+
+The ekf filter-related parameters are in `/params/global/ekf_odom_imu_gps.yaml`.
+
+Reference Trajectory, as a `RefTrajAxyt` mgs, can be  clicking points and trajectory generation related parameters are in `/params/reftraj_gen.yaml` (the associated launch file is `/launch/gen_traj.launch`). To note, when the parameter "save_traj_file" is set to "None", the generated trajectory will not be saved; if it is set to "save_traj_file : traj_abc" for example, the generated trajectory will be saved to "/traj/traj_abc.yaml". Similarly, when the parameter "save_plot_file" is set to "None", the plot of generated trajectory will not be saved; if it is set to "save_plot_file : traj_abc" for example, the plot will be saved to "/plot/traj_abc.png"
 (Note: for starting and stopping clicking points, you need to double-click on mapviz, however, you should not double click too fast because mapviz will respond slow.) 
 
 **Generate trajectory from pre-recorded bag file:**
