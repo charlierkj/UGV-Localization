@@ -30,7 +30,7 @@
 
 
     <!-- publish required tf (transformation) -->
-	<include file="$(find ugv_localization)/launch/static_tfs.launch"/>
+	<!-- include file="$(find ugv_localization)/launch/static_tfs.launch"/ -->
 	
 
 	<!-- publish /world/fix and visualize with rviz_satellite -->
@@ -54,4 +54,9 @@
 	<!-- click waypoints and generate trajectory -->
 	<include file="$(find ugv_localization)/launch/gen_traj.launch"/>
 
+
+	<!-- load map -->
+	<!-- include file="$(find ugv_localization)/launch/rampage_map_n_static_tf.launch">
+		<arg name="lidarmap" value="latrobe"/>
+	</include -->
 </launch>

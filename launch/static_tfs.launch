@@ -10,5 +10,7 @@
 
   <!-- Publish transformation between base_link and laser -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link2lidar" args="0.45 0 0 0 0 0 1 base_link lidar"/>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link2laser" args="0.45 0 0 0 0 0 1 base_link laser"/>
   
 </launch>

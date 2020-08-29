@@ -13,5 +13,5 @@
   <!-- Publish transformation between world and occupancy grid origin(og_org) basically map origin -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_og_org" args="world2og_org" output="screen"/>
 
-  <include file = "$(find ugv_localization)/launch/static_tfs.launch"  /> 
+  <!-- include file = "$(find ugv_localization)/launch/static_tfs.launch"/ --> 
 </launch>
