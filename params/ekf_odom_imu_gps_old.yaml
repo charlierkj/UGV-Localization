@@ -5,11 +5,16 @@
 #  roll_vel, pitch_vel, yaw_vel,
 #  x_accel , y_accel  , z_accel] ( 15 states)
 
-frequency: 100
+frequency: 50
 
 two_d_mode: true
 
-publish_tf: false
+publish_tf: true
+
+smooth_lagged_data: true
+history_length: 2
+
+predict_to_current_time: false
 
 # specify the frames
 world_frame: map
@@ -18,13 +23,14 @@ odom_frame: map
 base_link_frame: base_link
 
 # configure odometry inputs
-odom0: odometry/wheel_imu/t265
+odom0: odometry/wheel_imu
 odom0_config: [false, false, false,
                false, false, false,
                true, true, false,
                false, false, false,
                false, false, false]
 odom0_differential: false
+odom0_queue_size: 2
 
 odom1: odometry/gps
 odom1_config: [true, true, false,
@@ -35,13 +41,14 @@ odom1_config: [true, true, false,
 odom1_differential: false
 
 # configure imu inputs
-imu0: imu/refined/t265
+imu0: imu/refine
 imu0_config: [false, false, false,
               false, false, false,
               false, false, false,
               false, false, true,
               false, false, false]
 imu0_differential: false
+imu0_queue_size: 2
 
 imu1: gps/navheading/new
 imu1_config: [false, false, false,

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import sys
+import os, sys
 import rospy
+import rospkg
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,6 +22,8 @@ class CurvePlotter(object):
 		self.mode = mode
 
 		self.start_time = -1
+
+		# records
 		self.record_nofilter = np.empty(shape=(0, 4)) # t, x, y, yaw
 		self.record_filter = np.empty(shape=(0, 7)) # t, x, y, yaw, x_cov, y_cov, yaw_cov
 		self.slip_angle = [] # slip angle for filtered odometry
@@ -32,25 +35,27 @@ class CurvePlotter(object):
 		self.imu_3dm = np.empty(shape=(0, 5)) # t, ang_vel.z, lin_accel.x, lin_accel.y, lin_accel.z
 		self.t265_ang_vel = np.empty(shape=(0, 2)) # t, ang_vel.z
 		self.t265_lin_accel = np.empty(shape=(0, 4)) # t, lin_accel.x, lin_accel.y, lin_accel.z
+
+		self.gps_odom_record = np.empty((0, 3)) # t, x, x_cov
 		
-		#self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
+		# subscribers
+		self.sub_nofilter = rospy.Subscriber('/odometry', Odometry, self.odom_callback)
 
 		if self.mode == 'local':
 			self.sub_tf = rospy.Subscriber('/tf_static', TFMessage, self.tf_callback)
 
 		self.sub_filter = rospy.Subscriber('/odometry/filtered', Odometry, self.odom_callback)
 
-		#self.sub_odom = rospy.Subscriber('/odometry/wheel_imu', Odometry, self.odom_callback)
+		self.sub_odom = rospy.Subscriber('/odometry/wheel_imu', Odometry, self.odom_callback)
 
 		self.sub_gps = rospy.Subscriber('/gps/fix', NavSatFix, self.gps_callback)
-		#self.sub_gps_odom = rospy.Subscriber('/odometry/gps', Odometry, self.gps_odom_callback)
-		#self.gps_odom_record = np.empty((0, 3)) # t, x, x_cov
+		self.sub_gps_odom = rospy.Subscriber('/odometry/gps', Odometry, self.gps_odom_callback)
 		self.sub_heading = rospy.Subscriber('/gps/navheading/new', Imu, self.heading_callback)
 		self.sub_navrelposned = rospy.Subscriber('/gps/navrelposned', NavRELPOSNED9, self.navrelposned_callback)
 
 		self.sub_imu_3dm = rospy.Subscriber('/imu/refined', Imu, self.imu_callback)
-		#self.sub_t265_ang_vel = rospy.Subscriber('/rs_t265/gyro/sample', Imu, self.imu_callback)
-		#self.sub_t265_lin_accel = rospy.Subscriber('/rs_t265/accel/sample', Imu, self.imu_callback)
+		self.sub_t265_ang_vel = rospy.Subscriber('/rs_t265/gyro/sample', Imu, self.imu_callback)
+		self.sub_t265_lin_accel = rospy.Subscriber('/rs_t265/accel/sample', Imu, self.imu_callback)
 
 		self.tf_utm2map, self.tf_odom2utm, self.tf_map2odom = None, None, None
 
@@ -103,7 +108,7 @@ class CurvePlotter(object):
 		axs[1, 1].set_xlabel('time')
 
 		plt.tight_layout()
-		#plt.savefig(path)
+		plt.savefig(path)
 		plt.show()
 
 
@@ -118,7 +123,7 @@ class CurvePlotter(object):
 		axs[1].set_xlabel('time')
 
 		plt.tight_layout()
-		#plt.savefig(path)
+		plt.savefig(path)
 		plt.show()
 
 
@@ -139,7 +144,7 @@ class CurvePlotter(object):
 		axs[3].set_xlabel('time')
 
 		plt.tight_layout()
-		# plt.savefig(path)
+		plt.savefig(path)
 		plt.show()
 
 
@@ -221,7 +226,7 @@ class CurvePlotter(object):
 			axs[0].legend()
 
 		plt.tight_layout()
-		#plt.savefig(path)
+		plt.savefig(path)
 		plt.show()
 
 
@@ -400,26 +405,30 @@ if __name__ == "__main__":
 	rospy.init_node('plot_curve', anonymous=True)
 
 	node_name = rospy.get_name()
-	mode = rospy.get_param(node_name + '/mode')
-	data = rospy.get_param(node_name + '/data')
+	mode = rospy.get_param(node_name + '/mode', 'global')
+	data = rospy.get_param(node_name + '/name', 'test')
 
 	curve_plotter = CurvePlotter(mode)
 	rospy.spin()
 
-	path_pose = '/home/charlierkj/asco/src/ugv_localization/figs/%s_pose.png' % data
-	path_slipangle = '/home/charlierkj/asco/src/ugv_localization/figs/%s_slipangle.png' % data
-	path_gps = '/home/charlierkj/asco/src/ugv_localization/figs/%s_gps_msr.png' % data
-	path_heading = '/home/charlierkj/asco/src/ugv_localization/figs/%s_heading_msr.png' % data
-	path_imu_continuous = '/home/charlierkj/asco/src/ugv_localization/figs/%s_imu_vs_t265.png' % data
-	path_cov_odom = '/home/charlierkj/asco/src/ugv_localization/figs/%s_cov_odom.png' % data
-	path_heading_clue = '/home/charlierkj/asco/src/ugv_localization/figs/%s_heading_clue_2.png' % data
+	pkg_path = rospkg.RosPack().get_path("ugv_localization")
+	if not os.path.exists(os.path.join(pkg_path, 'figs')):
+		os.mkdir(os.path.join(pkg_path, 'figs'))
 
-	#if rospy.is_shutdown():
-		#curve_plotter.plot_curve_pose(path_pose)
-		#curve_plotter.plot_curve_slipangle(path_slipangle)
-		#curve_plotter.plot_covariance_gps(path_gps)
-		#curve_plotter.plot_covariance_heading(path_heading)
-		#curve_plotter.plot_imu_continuous(path_imu_continuous, mode='separate', t_min=50)
-		#curve_plotter.plot_covariance_odom(path_cov_odom)
-		#curve_plotter.save_results()
+	path_pose = os.path.join(pkg_path, 'figs/%s_pose.png' % data)
+	path_slipangle = os.path.join(pkg_path, 'figs/%s_slipangle.png' % data)
+	path_gps = os.path.join(pkg_path, 'figs/%s_gps_msr.png' % data)
+	path_heading = os.path.join(pkg_path, 'figs/%s_heading_msr.png' % data)
+	path_imu_continuous = os.path.join(pkg_path, 'figs/%s_imu_vs_t265.png' % data)
+	path_cov_odom = os.path.join(pkg_path, 'figs/%s_cov_odom.png' % data)
+	path_heading_clue = os.path.join(pkg_path, 'figs/%s_heading_clue_2.png' % data)
+
+	if rospy.is_shutdown():
+		curve_plotter.plot_curve_pose(path_pose)
+		curve_plotter.plot_curve_slipangle(path_slipangle)
+		curve_plotter.plot_covariance_gps(path_gps)
+		curve_plotter.plot_covariance_heading(path_heading)
+		curve_plotter.plot_imu_continuous(path_imu_continuous, mode='separate', t_min=50)
+		curve_plotter.plot_covariance_odom(path_cov_odom)
+		curve_plotter.save_results()
 		#curve_plotter.plot_heading_clue(path_heading_clue)

@@ -16,12 +16,12 @@ from tf import transformations
 
 class GlobalFilterWrapper(object):
 
-	def __init__(self, topic_odom_wheel, topic_odom_gps, topic_imu, config_file, filter_node_name, topic_out):
+	def __init__(self, topic_wheel_odom, topic_gps_odom, topic_gps_heading, config_file, filter_node_name, topic_out):
 		# configure subscriber and publisher
-		self.sub_odom_wheel = message_filters.Subscriber(topic_odom_wheel, Odometry)
-		self.sub_odom_gps = message_filters.Subscriber(topic_odom_gps, Odometry)
-		self.sub_imu = message_filters.Subscriber(topic_imu, Imu)
-		self.subs = [self.sub_odom_wheel, self.sub_odom_gps, self.sub_imu]
+		self.sub_wheel_odom = message_filters.Subscriber(topic_wheel_odom, Odometry)
+		self.sub_gps_odom = message_filters.Subscriber(topic_gps_odom, Odometry)
+		self.sub_gps_heading = message_filters.Subscriber(topic_gps_heading, Imu)
+		self.subs = [self.sub_wheel_odom, self.sub_gps_odom, self.sub_gps_heading]
 		
 		# time synchronizer
 		self.ts = message_filters.ApproximateTimeSynchronizer(self.subs, 10, 0.2)
@@ -41,30 +41,28 @@ class GlobalFilterWrapper(object):
 		self.filter_node_name = filter_node_name	
 
 
-	def callback(self, msg_wheel, msg_gps, msg_imu):
+	def callback(self, msg_wheel, msg_gps_odom, msg_gps_heading):
 		print('Initializing states ...')
 		if self.ready:
 			for sub in self.subs:
 				sub.unregister()
 			self.run_filter()
 		else:
-			self.set_init_state(msg_wheel, msg_gps, msg_imu)
+			self.set_init_state(msg_wheel, msg_gps_odom, msg_gps_heading)
 
 
-	def set_init_state(self, msg_wheel, msg_gps, msg_imu):
+	def set_init_state(self, msg_wheel, msg_gps_odom, msg_gps_heading):
 		# position
-		self.init_state[0] = msg_gps.pose.pose.position.x
-		self.init_state[1] = msg_gps.pose.pose.position.y
+		self.init_state[0] = msg_gps_odom.pose.pose.position.x
+		self.init_state[1] = msg_gps_odom.pose.pose.position.y
 		# orientation
-		q = msg_imu.orientation
+		q = msg_gps_heading.orientation
 		euler = transformations.euler_from_quaternion(quaternion=(q.x, q.y, q.z, q.w))
 		self.init_state[5] = euler[2]
 		# linear velocity
 		self.init_state[6] = msg_wheel.twist.twist.linear.x
 		# angular velocity
-		self.init_state[11] = msg_imu.angular_velocity.z
-		# linear acceleration
-		self.init_state[12] = msg_imu.linear_acceleration.x
+		self.init_state[11] = msg_wheel.twist.twist.angular.z
 
 		self.ready = True
 
@@ -82,10 +80,10 @@ class GlobalFilterWrapper(object):
 if __name__ == "__main__":
 
 	if len(sys.argv) < 4:
-		print 'Please specify three topics to subscribe (odom_wheel, odom_gps, imu)'
+		print 'Please specify three topics to subscribe (wheel_odom, gps_odom, gps_heading)'
 		sys.exit()
 
-	topic_odom_wheel, topic_odom_gps, topic_imu = sys.argv[1], sys.argv[2], sys.argv[3]
+	topic_wheel_odom, topic_gps_odom, topic_gps_heading = sys.argv[1], sys.argv[2], sys.argv[3]
 
 	rospy.init_node('global_filter_wrapper', anonymous=True)
 
@@ -98,7 +96,7 @@ if __name__ == "__main__":
 	except:
 		topic_out = 'odometry/filtered'
 
-	global_filter_wrapper = GlobalFilterWrapper(topic_odom_wheel, topic_odom_gps, topic_imu, config_file, filter_node_name, topic_out)
+	global_filter_wrapper = GlobalFilterWrapper(topic_wheel_odom, topic_gps_odom, topic_gps_heading, config_file, filter_node_name, topic_out)
 	rospy.spin()
 		
 		

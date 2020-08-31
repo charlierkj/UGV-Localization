@@ -2,6 +2,7 @@ bag/
 debug/
 figs/
 plot/
+map/
 records/
 traj/
 *.pyc

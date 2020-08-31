@@ -172,7 +172,7 @@ if __name__ == "__main__":
 	# rospy.init_node('click_waypoints', anonymous=True)
 
 	# topic = "mapviz/clicked_point"
-	# npy_path = "/home/charlierkj/asco/src/ugv_localization/records/wps.npy"
+	# npy_path = os.path.join(rospkg.RosPack().get_path("ugv_localization"), "records/wps.npy")
 
 	# waypoints_saver = WaypointsSaver(topic)
 	# rospy.spin()

@@ -57,13 +57,16 @@ class GPSCovHandler(object):
 
 if __name__ == "__main__":
 
-	topic_in = '/gps/navheading'
-	topic_out = '/gps/navheading/scaled'
-	scale = 1000
-	cov_threshold = 1000
-
 	rospy.init_node('gps_cov_handler', anonymous=True)
-	gps_cov_handler = GPSCovHandler(topic_in, topic_out, scale, cov_threshold, msr='heading')
+
+	node_name = rospy.get_name()
+	msr = rospy.get_param(node_name + '/msr', 'heading')
+	topic_in = rospy.get_param(node_name + '/topic_in', '/gps/navheading')
+	topic_out = rospy.get_param(node_name + '/topic_out', '/gps/navheading/scaled')
+	scale = rospy.get_param(node_name + '/scale', 1000)
+	cov_threshold = rospy.get_param(node_name + '/cov_thresh', 1000)
+
+	gps_cov_handler = GPSCovHandler(topic_in, topic_out, scale, cov_threshold, msr)
 	rospy.spin()
 
 	

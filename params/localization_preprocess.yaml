@@ -1,8 +1,8 @@
 # topic to subscribe for generating wheel odometry from wheel encoder
 wheel_odom_topic_in: /wheel_odometry
 
-# topic to publish generated wheel odometry
-wheel_odom_topic_out: /odometry/wheel_imu
+# topic to publish generated wheel odometry (only with linear velocity)
+wheel_odom_topic_out: /odometry/wheel
 
 # topic to publish GPS heading
 gps_navheading_topic_out: /gps/navheading/new
