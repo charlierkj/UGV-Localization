@@ -64,7 +64,7 @@ topic_out: topic name to publish the filtered odometry (default: `odometry/filte
 
 **world_frame_gps_publisher.py**: publishes the latitude and longitude of the local world frame origin. (Parameters for this node are in `/params/world_frame_origin_gps.yaml` file.)
 
-## 2. Launch Files ##
+### 2. Launch Files ###
 
 **gen_traj.launch**: runs the **gen_traj.py** node to generate reference trajectory
 
